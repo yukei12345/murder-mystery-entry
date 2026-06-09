@@ -574,16 +574,26 @@ const ADMIN_PASS = 'mystery'; // ← パスワードをここで変更
 let fbState = { entries: {}, categories: null, workcats: {}, workinfo: {}, deleted: [], customWorks: {}, workOrder: [] };
 let fbReady = false;
 
+// Firebase は配列をオブジェクトとして返すことがあるため正規化
+function toArr(v) {
+  if (!v) return [];
+  return Array.isArray(v) ? v : Object.values(v);
+}
+
 rootRef.on('value', (snapshot) => {
-  const data         = snapshot.val() || {};
-  fbState.entries    = data.entries     || {};
-  fbState.categories = data.categories  || null;
-  fbState.workcats   = data.workcats    || {};
-  fbState.workinfo   = data.workinfo    || {};
-  fbState.deleted     = data.deleted     || [];
-  fbState.customWorks = data.customWorks || {};
-  const wo = data.workOrder;
-  fbState.workOrder = wo ? (Array.isArray(wo) ? wo : Object.values(wo)) : [];
+  const data          = snapshot.val() || {};
+  fbState.entries     = data.entries    || {};
+  fbState.categories  = data.categories || null;
+  fbState.workcats    = data.workcats   || {};
+  fbState.workinfo    = data.workinfo   || {};
+  fbState.deleted     = toArr(data.deleted);
+  fbState.workOrder   = toArr(data.workOrder);
+  // customWorks の tags も配列に正規化
+  const rawCW = data.customWorks || {};
+  fbState.customWorks = {};
+  Object.entries(rawCW).forEach(([id, w]) => {
+    fbState.customWorks[id] = { ...w, tags: toArr(w.tags) };
+  });
   fbReady = true;
   setSyncOnline(true);
   render();
@@ -639,7 +649,7 @@ function getInfo(w) {
     players:  players,
     time:     saved.time     ?? w.time     ?? '',
     author:   saved.author   ?? w.author   ?? '',
-    tags:     saved.tags     ?? w.tags     ?? [],
+    tags:     toArr(saved.tags ?? w.tags),
     capacity: (saved.capacity ?? w.capacity ?? guessCapacity(players)) || 0,
   };
 }
