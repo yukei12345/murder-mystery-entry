@@ -873,6 +873,7 @@ function adminLogout() {
   document.getElementById('adminPass').value = '';
   document.getElementById('adminView').innerHTML = '';
   document.getElementById('adminLoginBox').style.display = '';
+  document.getElementById('publicView').style.display = '';
   document.getElementById('publicView').classList.remove('admin-mode');
   document.getElementById('adminPanel').classList.remove('open');
   document.querySelector('.header-admin-btn').textContent = '管理者ログイン';
