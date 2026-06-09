@@ -856,13 +856,13 @@ function renderFilterBar() {
     ),
   ].join('') : '';
 
-  const archivedCount = getWorks().filter(w => getInfo(w).status === 'done').length;
+  const archivedCount = getWorks().filter(w => ['confirmed','done'].includes(getInfo(w).status)).length;
   const archivedSection = archivedCount > 0
     ? `<div class="filter-section" style="justify-content:flex-end">
         <button class="archived-toggle-btn ${showArchived ? 'active' : ''}"
                 onclick="toggleArchived()"
                 aria-pressed="${showArchived}">
-          ${showArchived ? '✓ 開催済みを表示中' : `開催済みを表示（${archivedCount}件）`}
+          ${showArchived ? '✓ 開催確定・済みを表示中' : `開催確定・済みを表示（${archivedCount}件）`}
         </button>
        </div>`
     : '';
@@ -883,7 +883,7 @@ function render() {
   renderFilterBar();
 
   const filtered = works.filter(w =>
-    matchesPlayerFilter(w) && (showArchived || getInfo(w).status !== 'done')
+    matchesPlayerFilter(w) && (showArchived || getInfo(w).status === 'recruiting')
   );
   let groups = cats.map(cat => ({ cat, works: filtered.filter(w => getWorkCat(w) === cat) })).filter(g => g.works.length > 0);
   const ungrouped = filtered.filter(w => !cats.includes(getWorkCat(w)));
