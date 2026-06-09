@@ -245,9 +245,9 @@
       display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
       padding: 0.6rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2);
     }
-    .info-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--muted); }
+    .info-item { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
     .info-item svg { flex-shrink: 0; color: var(--accent); opacity: 0.9; }
-    .info-sep { color: var(--border-strong); font-size: 0.7rem; }
+    .info-sep { color: var(--border-strong); font-size: 0.7rem; flex-shrink: 0; }
 
     .work-tags {
       display: flex; flex-wrap: wrap; gap: 0.35rem;
@@ -281,6 +281,11 @@
     .entry-empty { font-size: 0.73rem; color: var(--muted); align-self: center; }
 
     .work-badge-full { background: var(--red) !important; color: #fff !important; border-color: var(--red) !important; font-weight: 700; }
+    /* 満員カード：左ボーダーを赤くして一目で判別 */
+    .work.is-full { border-left: 3px solid var(--red); }
+    .work.is-full .work-header { background: rgba(176,61,46,0.04); }
+    .admin-card.is-full { border-left: 3px solid var(--red); }
+    .admin-card.is-full .admin-card-header { background: rgba(176,61,46,0.06); }
     .full-notice {
       font-size: 0.78rem; color: var(--muted);
       background: var(--surface2); border: 1px dashed var(--border-strong);
@@ -470,7 +475,7 @@
 
     .admin-card-body { padding: 0.6rem 0.9rem 0.7rem; display: flex; flex-direction: column; gap: 0.4rem; }
     .admin-card-info { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; font-size: 0.75rem; color: var(--muted); }
-    .admin-card-info .info-sep { color: var(--border-strong); }
+    .admin-card-info .info-sep { color: var(--border-strong); flex-shrink: 0; }
     .admin-card-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
     .admin-card-entries-row { display: flex; align-items: baseline; gap: 0.5rem; }
     .admin-card-entries-label { font-size: 0.68rem; color: var(--muted); font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; }
@@ -864,7 +869,7 @@ function renderWork(w, entries) {
         </div>`;
 
   return `
-    <div class="work" data-id="${w.id}">
+    <div class="work${isFull ? ' is-full' : ''}" data-id="${w.id}">
       <div class="work-header">
         <span class="work-title">${esc(info.title)}</span>
         <span class="${badgeClass}">${badge}</span>
@@ -1041,7 +1046,7 @@ function renderAdmin() {
         ).join('')
       : `<span style="color:var(--muted);font-size:0.73rem">エントリーなし</span>`;
 
-    return `<div class="admin-card" data-id="${w.id}"
+    return `<div class="admin-card${isFull ? ' is-full' : ''}" data-id="${w.id}"
          draggable="false"
          ondragstart="onAdminDragStart(event,'${w.id}')"
          ondragover="onAdminDragOver(event)"
