@@ -880,15 +880,13 @@ function renderFilterBar() {
   ].join('') : '';
 
   const archivedCount = getWorks().filter(w => ['confirmed','done'].includes(getInfo(w).status)).length;
-  const archivedSection = archivedCount > 0
-    ? `<div class="filter-section" style="justify-content:flex-end">
-        <button class="archived-toggle-btn ${showArchived ? 'active' : ''}"
-                onclick="toggleArchived()"
-                aria-pressed="${showArchived}">
-          ${showArchived ? '✓ 開催確定・済みを表示中' : `開催確定・済みを表示（${archivedCount}件）`}
-        </button>
-       </div>`
-    : '';
+  const archivedSection = `<div class="filter-section" style="justify-content:flex-end">
+      <button class="archived-toggle-btn ${showArchived ? 'active' : ''}"
+              onclick="toggleArchived()"
+              aria-pressed="${showArchived}">
+        ${showArchived ? '✓ 開催確定・済みを表示中' : `開催確定・済みを表示${archivedCount > 0 ? `（${archivedCount}件）` : ''}`}
+      </button>
+     </div>`;
 
   document.getElementById('filterBar').innerHTML =
     `<div class="filter-section"><span class="filter-section-label">カテゴリ</span>${catSection}</div>` +
