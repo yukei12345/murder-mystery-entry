@@ -421,6 +421,7 @@
                 aria-label="パスワードを表示" onclick="togglePassVisible()">表示</button>
       </div>
       <button class="btn btn-primary" onclick="adminLogin()">ログイン</button>
+      <button class="btn btn-ghost" onclick="closeAdminPanel()">キャンセル</button>
     </div>
     <p class="admin-err" id="adminErr"></p>
     <div id="adminView"></div>
@@ -717,6 +718,12 @@ let isAdmin = false;
 function toggleAdmin() {
   if (isAdmin) { adminLogout(); return; }
   document.getElementById('adminPanel').classList.toggle('open');
+}
+
+function closeAdminPanel() {
+  document.getElementById('adminPanel').classList.remove('open');
+  document.getElementById('adminPass').value = '';
+  document.getElementById('adminErr').textContent = '';
 }
 
 function togglePassVisible() {
