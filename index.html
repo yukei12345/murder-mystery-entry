@@ -903,9 +903,12 @@ function render() {
   if (activeFilter !== 'all' && !getAllCats().includes(activeFilter)) activeFilter = 'all';
   renderFilterBar();
 
-  const filtered = works.filter(w =>
-    matchesPlayerFilter(w) && (showArchived || getInfo(w).status === 'recruiting')
-  );
+  const filtered = works.filter(w => {
+    const s = getInfo(w).status;
+    return matchesPlayerFilter(w) && (
+      showArchived ? s !== 'recruiting' : s === 'recruiting'
+    );
+  });
   let groups = cats.map(cat => ({ cat, works: filtered.filter(w => getWorkCat(w) === cat) })).filter(g => g.works.length > 0);
   const ungrouped = filtered.filter(w => !cats.includes(getWorkCat(w)));
   if (ungrouped.length) groups.push({ cat: 'その他', works: ungrouped });
