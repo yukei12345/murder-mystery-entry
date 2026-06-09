@@ -461,6 +461,29 @@
     .reset-btn:hover { border-color: var(--red); color: var(--red); }
     .reset-btn:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
 
+    /* ── Admin status tabs ── */
+    .admin-tabs {
+      display: flex; gap: 0; border-bottom: 2px solid var(--border);
+      margin-bottom: 1.25rem; overflow-x: auto;
+    }
+    .admin-tab {
+      background: none; border: none; border-bottom: 2px solid transparent;
+      margin-bottom: -2px; padding: 0.55rem 1.1rem;
+      font-family: inherit; font-size: 0.82rem; font-weight: 600;
+      color: var(--muted); cursor: pointer; white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .admin-tab:hover { color: var(--text); }
+    .admin-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .admin-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .admin-tab-count {
+      display: inline-block; font-size: 0.68rem; font-weight: 700;
+      background: var(--border); color: var(--muted);
+      border-radius: 20px; padding: 0.05rem 0.45rem; margin-left: 0.3rem;
+      vertical-align: middle;
+    }
+    .admin-tab.active .admin-tab-count { background: var(--accent-soft); color: var(--accent-dark); }
+
     /* ── Modal ── */
     .modal-overlay {
       display: none; position: fixed; inset: 0; z-index: 100;
@@ -1052,6 +1075,9 @@ function showMsg(el, text, type) {
 
 // ── 管理者 ────────────────────────────────────────────────
 let isAdmin = false;
+let adminTab = 'recruiting'; // 'recruiting' | 'confirmed' | 'done'
+
+function setAdminTab(tab) { adminTab = tab; renderAdmin(); }
 
 function toggleAdmin() {
   if (isAdmin) { adminLogout(); return; }
@@ -1116,7 +1142,11 @@ function renderAdmin() {
 
   const DRAG_HANDLE_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>`;
 
-  const cards = getWorks().map(w => {
+  // タブごとの件数
+  const tabCounts = { recruiting: 0, confirmed: 0, done: 0 };
+  getWorks().forEach(w => { const s = getInfo(w).status; if (s in tabCounts) tabCounts[s]++; });
+
+  const cards = getWorks().filter(w => getInfo(w).status === adminTab).map(w => {
     const info   = getInfo(w);
     const list   = entries[w.id] || [];
     const cap    = info.capacity;
@@ -1227,8 +1257,27 @@ function renderAdmin() {
     </div>
     <div class="admin-section">
       <p class="admin-section-title">作品・エントリー管理</p>
-      <div class="admin-list">${cards}</div>
-      <button class="reset-btn" onclick="clearAll()">全エントリーをリセット</button>
+      <div class="admin-tabs" role="tablist">
+        <button class="admin-tab ${adminTab==='recruiting'?'active':''}" role="tab"
+                aria-selected="${adminTab==='recruiting'}" onclick="setAdminTab('recruiting')">
+          募集中<span class="admin-tab-count">${tabCounts.recruiting}</span>
+        </button>
+        <button class="admin-tab ${adminTab==='confirmed'?'active':''}" role="tab"
+                aria-selected="${adminTab==='confirmed'}" onclick="setAdminTab('confirmed')">
+          開催確定<span class="admin-tab-count">${tabCounts.confirmed}</span>
+        </button>
+        <button class="admin-tab ${adminTab==='done'?'active':''}" role="tab"
+                aria-selected="${adminTab==='done'}" onclick="setAdminTab('done')">
+          開催済み<span class="admin-tab-count">${tabCounts.done}</span>
+        </button>
+      </div>
+      ${cards.length
+        ? `<div class="admin-list">${cards}</div>`
+        : `<p style="color:var(--muted);font-size:0.85rem;padding:1.5rem 0;text-align:center">該当する作品はありません</p>`
+      }
+      ${adminTab === 'recruiting'
+        ? `<button class="reset-btn" onclick="clearAll()">全エントリーをリセット</button>`
+        : ''}
     </div>`;
 }
 
