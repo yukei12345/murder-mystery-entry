@@ -468,11 +468,11 @@ const rootRef = db.ref('mm');
 const DEFAULT_CATEGORIES = ['初回の方向け', '複数回経験済み'];
 
 const WORKS = [
-  { id: 'w1', title: '九頭竜館の殺人',            defaultCat: '初回の方向け',    players: '7〜9名', time: '約120分', capacity: 9, tags: ['Level★☆☆', '館', 'ホラー', 'GM不要'] },
-  { id: 'w2', title: '人狼村の祝祭',              defaultCat: '初回の方向け',    players: '7〜8名', time: '約120分', capacity: 8, tags: ['Level★☆☆', 'ファンタジー', 'GM不要'] },
-  { id: 'w3', title: '最果亭の災禍',              defaultCat: '初回の方向け',    players: '6〜8名', time: '約180分', capacity: 8, tags: ['Level★☆☆', 'ファンタジー', 'GM不要'] },
-  { id: 'w4', title: '何度だって青い月に火を灯した', defaultCat: '複数回経験済み', players: '6〜7名', time: '約150分', capacity: 7, tags: ['Level★★☆', 'マフィア', '群像劇', 'GM不要'] },
-  { id: 'w5', title: 'ダークユールに贖いを',        defaultCat: '複数回経験済み', players: '7〜9名', time: '約180分', capacity: 9, tags: ['Level★★★', '吸血鬼', 'ロールプレイ', 'GM不要'] },
+  { id: 'w1', title: '九頭竜館の殺人',            defaultCat: '初回の方向け',    players: '7〜9名', time: '約120分', capacity: 9, author: 'Group SNE', tags: ['Level★☆☆', '館', 'ホラー', 'GM不要'] },
+  { id: 'w2', title: '人狼村の祝祭',              defaultCat: '初回の方向け',    players: '7〜8名', time: '約120分', capacity: 8, author: 'Group SNE', tags: ['Level★☆☆', 'ファンタジー', 'GM不要'] },
+  { id: 'w3', title: '最果亭の災禍',              defaultCat: '初回の方向け',    players: '6〜8名', time: '約180分', capacity: 8, author: 'Group SNE', tags: ['Level★☆☆', 'ファンタジー', 'GM不要'] },
+  { id: 'w4', title: '何度だって青い月に火を灯した', defaultCat: '複数回経験済み', players: '6〜7名', time: '約150分', capacity: 7, author: 'Group SNE', tags: ['Level★★☆', 'マフィア', '群像劇', 'GM不要'] },
+  { id: 'w5', title: 'ダークユールに贖いを',        defaultCat: '複数回経験済み', players: '7〜9名', time: '約180分', capacity: 9, author: 'Group SNE', tags: ['Level★★★', '吸血鬼', 'ロールプレイ', 'GM不要'] },
 ];
 
 const ADMIN_PASS = 'mystery'; // ← パスワードをここで変更
@@ -529,6 +529,7 @@ function getInfo(w) {
     title:    saved.title    ?? w.title,
     players:  players,
     time:     saved.time     ?? w.time,
+    author:   saved.author   ?? w.author ?? '',
     tags:     saved.tags     ?? w.tags,
     capacity: (saved.capacity ?? w.capacity ?? guessCapacity(players)) || 0,
   };
@@ -543,6 +544,7 @@ function saveInfo(id, patch) {
 const ICON = {
   person: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
   clock:  `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  author: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
 };
 
 // ── メイン描画 ────────────────────────────────────────────
@@ -634,6 +636,7 @@ function renderWork(w, entries) {
         <span class="info-item"><span class="sr-only">参加人数</span>${ICON.person} ${esc(info.players)}</span>
         <span class="info-sep" aria-hidden="true">·</span>
         <span class="info-item"><span class="sr-only">所要時間</span>${ICON.clock} ${esc(info.time)}</span>
+        ${info.author ? `<span class="info-sep" aria-hidden="true">·</span><span class="info-item"><span class="sr-only">作者</span>${ICON.author} ${esc(info.author)}</span>` : ''}
       </div>
       ${tagHtml ? `<div class="work-tags">${tagHtml}</div>` : ''}
       <div class="work-bottom">
@@ -793,6 +796,7 @@ function renderAdmin() {
         <div class="field-row"><span class="field-label">人数</span>  <input class="a-input fill" id="i-players-${w.id}"  value="${esc(info.players)}"         maxlength="20" /></div>
         <div class="field-row"><span class="field-label">定員</span>  <input class="a-input" id="i-capacity-${w.id}" type="number" min="0" max="99" value="${info.capacity}" style="width:5rem" /><span class="field-hint">名（0で無制限）</span></div>
         <div class="field-row"><span class="field-label">時間</span>  <input class="a-input fill" id="i-time-${w.id}"     value="${esc(info.time)}"            maxlength="20" /></div>
+        <div class="field-row"><span class="field-label">作者</span>  <input class="a-input fill" id="i-author-${w.id}"   value="${esc(info.author)}"          maxlength="40" /></div>
         <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="i-tags-${w.id}"     value="${esc(info.tags.join(','))}"  maxlength="100" placeholder="カンマ区切りで入力" /></div>
         <div class="field-row"><span class="field-label">カテゴリ</span><select class="a-select" id="i-cat-${w.id}" onchange="saveWorkCat('${w.id}')">${catOpts}</select></div>
         <div class="field-row" style="margin-top:0.2rem">
@@ -867,11 +871,12 @@ function saveWorkInfo(id) {
   const title    = document.getElementById(`i-title-${id}`).value.trim();
   const players  = document.getElementById(`i-players-${id}`).value.trim();
   const time     = document.getElementById(`i-time-${id}`).value.trim();
+  const author   = document.getElementById(`i-author-${id}`).value.trim();
   const tags     = document.getElementById(`i-tags-${id}`).value.split(',').map(t => t.trim()).filter(Boolean);
   const capacity = Math.max(0, parseInt(document.getElementById(`i-capacity-${id}`).value, 10) || 0);
   if (!title) return;
 
-  const commit  = () => saveInfo(id, { title, players, time, tags, capacity });
+  const commit  = () => saveInfo(id, { title, players, time, author, tags, capacity });
   const current = (fbState.entries[id] || []).length;
   if (capacity > 0 && capacity < current) {
     openConfirm({
