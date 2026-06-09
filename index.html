@@ -207,15 +207,17 @@
     .work.dragging { opacity: 0.4; }
     .work.drag-over { border-color: var(--accent); border-style: dashed; box-shadow: 0 0 0 2px var(--accent-soft); }
 
-    /* ドラッグハンドル（管理者モード時のみ表示） */
-    .drag-handle {
-      display: none; align-items: center; padding: 0 0.4rem;
+    /* ── 管理テーブル ドラッグ並び替え ── */
+    .admin-drag-handle {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 1.6rem; height: 1.6rem; border-radius: 4px;
       color: var(--muted); cursor: grab; flex-shrink: 0;
-      border-radius: 4px; transition: color 0.15s, background 0.15s;
+      transition: color 0.15s, background 0.15s;
     }
-    .admin-mode .drag-handle { display: flex; }
-    .drag-handle:hover { color: var(--accent-dark); background: var(--accent-soft); }
-    .drag-handle:active { cursor: grabbing; color: var(--accent-dark); }
+    .admin-drag-handle:hover { color: var(--accent-dark); background: var(--accent-soft); }
+    .admin-drag-handle:active { cursor: grabbing; }
+    .admin-table tr.dragging { opacity: 0.4; }
+    .admin-table tr.drag-over { outline: 2px dashed var(--accent); outline-offset: -2px; }
 
     .work-header {
       padding: 0.9rem 1.25rem 0.75rem 0.75rem; border-bottom: 1px solid var(--border);
@@ -734,19 +736,10 @@ function renderWork(w, entries) {
           <button class="btn btn-primary" onclick="doEntry('${w.id}')">エントリー</button>
         </div>`;
 
-  const dragAttrs = isAdmin
-    ? `draggable="true" ondragstart="onDragStart(event,'${w.id}')" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'${w.id}')" ondragend="onDragEnd(event)"`
-    : '';
-
   return `
-    <div class="work" data-id="${w.id}" ${dragAttrs}>
+    <div class="work" data-id="${w.id}">
       <div class="work-header">
-        <div class="work-header-left">
-          <span class="drag-handle" title="ドラッグして並び替え" aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
-          </span>
-          <span class="work-title">${esc(info.title)}</span>
-        </div>
+        <span class="work-title">${esc(info.title)}</span>
         <span class="${badgeClass}">${badge}</span>
       </div>
       <div class="work-info">
@@ -869,7 +862,6 @@ function adminLogout() {
   document.getElementById('adminPass').value = '';
   document.getElementById('adminView').innerHTML = '';
   document.getElementById('adminLoginBox').style.display = '';
-  document.getElementById('publicView').style.display = '';
   document.getElementById('publicView').classList.remove('admin-mode');
   document.getElementById('adminPanel').classList.remove('open');
   document.querySelector('.header-admin-btn').textContent = '管理者ログイン';
@@ -879,7 +871,6 @@ function adminLogout() {
 function showAdminUI() {
   document.getElementById('adminLoginBox').style.display = 'none';
   document.getElementById('publicView').style.display = 'none';
-  document.getElementById('publicView').classList.add('admin-mode');
   document.querySelector('.header-admin-btn').textContent = '管理者ログアウト';
   document.getElementById('headerStatus').hidden = false;
   renderAdmin();
@@ -909,8 +900,19 @@ function renderAdmin() {
         ).join('')
       : '<span style="color:#7a8475">なし</span>';
 
-    return `<tr>
+    return `<tr draggable="true" data-id="${w.id}"
+         ondragstart="onAdminDragStart(event,'${w.id}')"
+         ondragover="onAdminDragOver(event)"
+         ondragleave="onAdminDragLeave(event)"
+         ondrop="onAdminDrop(event,'${w.id}')"
+         ondragend="onAdminDragEnd(event)">
       <td>
+        <div class="field-row" style="margin-bottom:0.6rem">
+          <span class="admin-drag-handle" title="ドラッグして並び替え" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
+          </span>
+          <span style="font-size:0.7rem;color:var(--muted)">ドラッグで並び替え</span>
+        </div>
         <div class="field-row"><span class="field-label">作品名</span><input class="a-input fill" id="i-title-${w.id}"    value="${esc(info.title)}"           maxlength="40" /></div>
         <div class="field-row"><span class="field-label">人数</span>  <input class="a-input fill" id="i-players-${w.id}"  value="${esc(info.players)}"         maxlength="20" /></div>
         <div class="field-row"><span class="field-label">定員</span>  <input class="a-input" id="i-capacity-${w.id}" type="number" min="0" max="99" value="${info.capacity}" style="width:5rem" /><span class="field-hint">名（0で無制限）</span></div>
@@ -1131,43 +1133,44 @@ function addNewWork() {
 }
 
 // ── ドラッグ&ドロップ並び替え ────────────────────────────
-let dragSrcId = null;
+let adminDragSrcId = null;
 
-function onDragStart(e, id) {
-  dragSrcId = id;
+function onAdminDragStart(e, id) {
+  adminDragSrcId = id;
   e.dataTransfer.effectAllowed = 'move';
-  setTimeout(() => e.target.classList.add('dragging'), 0);
+  setTimeout(() => e.currentTarget.classList.add('dragging'), 0);
 }
 
-function onDragOver(e) {
+function onAdminDragOver(e) {
   e.preventDefault();
   e.dataTransfer.dropEffect = 'move';
-  const card = e.currentTarget;
-  if (card.dataset.id !== dragSrcId) card.classList.add('drag-over');
+  const row = e.currentTarget;
+  if (row.dataset.id !== adminDragSrcId) row.classList.add('drag-over');
 }
 
-function onDragLeave(e) {
+function onAdminDragLeave(e) {
   e.currentTarget.classList.remove('drag-over');
 }
 
-function onDragEnd(e) {
-  e.target.classList.remove('dragging');
-  document.querySelectorAll('.work').forEach(el => el.classList.remove('drag-over'));
+function onAdminDragEnd(e) {
+  document.querySelectorAll('#adminView tr').forEach(el => {
+    el.classList.remove('dragging', 'drag-over');
+  });
 }
 
-function onDrop(e, targetId) {
+function onAdminDrop(e, targetId) {
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
-  if (!dragSrcId || dragSrcId === targetId) return;
+  if (!adminDragSrcId || adminDragSrcId === targetId) return;
 
   const works = getWorks();
   const ids   = works.map(w => w.id);
-  const from  = ids.indexOf(dragSrcId);
+  const from  = ids.indexOf(adminDragSrcId);
   const to    = ids.indexOf(targetId);
   if (from === -1 || to === -1) return;
 
   ids.splice(from, 1);
-  ids.splice(to, 0, dragSrcId);
+  ids.splice(to, 0, adminDragSrcId);
   fbSet('workOrder', ids);
 }
 
