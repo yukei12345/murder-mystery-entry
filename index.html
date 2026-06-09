@@ -879,6 +879,25 @@ function saveInfo(id, patch) {
   return fbSet(`workinfo/${id}`, { ...getInfo(w), ...patch });
 }
 
+// ── 自分のエントリーをブラウザに記憶 ─────────────────────
+function getMyEntries() {
+  try { return JSON.parse(localStorage.getItem('mm_my_entries') || '{}'); } catch { return {}; }
+}
+function setMyEntry(workId, name) {
+  const d = getMyEntries(); d[workId] = name;
+  localStorage.setItem('mm_my_entries', JSON.stringify(d));
+}
+function clearMyEntry(workId) {
+  const d = getMyEntries(); delete d[workId];
+  localStorage.setItem('mm_my_entries', JSON.stringify(d));
+}
+function getMyEntry(workId, entries) {
+  const name = getMyEntries()[workId];
+  if (!name) return null;
+  if (!entries.includes(name)) { clearMyEntry(workId); return null; }
+  return name;
+}
+
 // ── SVG アイコン ──────────────────────────────────────────
 const ICON = {
   person: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
@@ -1002,11 +1021,13 @@ function renderWork(w, entries) {
   const isConfirmed = status === 'confirmed';
   const entryOpen   = status === 'recruiting' && !isFull;
 
-  const chips = entries.length
-    ? entries.map((n, i) =>
-        `<span class="entry-chip">${esc(n)}<button class="chip-remove" title="エントリーを取り消す" aria-label="${esc(n)} のエントリーを取り消す" onclick="removeOwnEntry('${w.id}',${i})">×</button></span>`
-      ).join('')
-    : '<span class="entry-empty">まだ誰もエントリーしていません</span>';
+  const myName = getMyEntry(w.id, entries);
+  const myIdx  = myName ? entries.indexOf(myName) : -1;
+  const chips  = myName
+    ? `<span class="entry-chip">${esc(myName)}<button class="chip-remove" title="エントリーを取り消す" aria-label="${esc(myName)} のエントリーを取り消す" onclick="removeOwnEntry('${w.id}',${myIdx})">×</button></span>`
+    : entries.length
+      ? '<span class="entry-empty">名前は非公開です</span>'
+      : '<span class="entry-empty">まだ誰もエントリーしていません</span>';
 
   const tagHtml = info.tags.length ? info.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('') : '';
 
@@ -1081,7 +1102,7 @@ function renderWork(w, entries) {
           ${scheduleBar}
           ${tagHtml ? `<div class="work-tags">${tagHtml}</div>` : ''}
           <div class="work-bottom">
-            ${entries.length ? '<div class="entries-label">エントリー済み</div>' : ''}
+            ${entries.length ? `<div class="entries-label">エントリー済み: ${entries.length}名${myName ? '（あなたを含む）' : ''}</div>` : ''}
             <div class="entry-list">${chips}</div>
             ${formHtml}
             <p class="msg" id="msg-${w.id}" role="status" aria-live="polite"></p>
@@ -1122,13 +1143,14 @@ function commitEntry(id, name) {
   if (cap > 0 && list.length >= cap) return;
   list.push(name);
   fbSet(`entries/${id}`, list).then(() => {
+    setMyEntry(id, name);
     const input = document.getElementById(`input-${id}`);
     if (input) input.value = '';
     showMsg(document.getElementById(`msg-${id}`), `「${name}」でエントリーしました！`, 'ok');
   });
 }
 
-function confirmRemoveEntry(id, index, label = '取り消し') {
+function confirmRemoveEntry(id, index, label = '取り消し', afterConfirm = null) {
   const list  = fbState.entries[id] || [];
   const name  = list[index];
   if (name === undefined) return;
@@ -1144,11 +1166,12 @@ function confirmRemoveEntry(id, index, label = '取り消し') {
       if (pos === -1) return;
       cur.splice(pos, 1);
       fbSet(`entries/${id}`, cur.length ? cur : null);
+      if (afterConfirm) afterConfirm();
     },
   });
 }
 
-function removeOwnEntry(id, index) { confirmRemoveEntry(id, index, '取り消し'); }
+function removeOwnEntry(id, index) { confirmRemoveEntry(id, index, '取り消し', () => clearMyEntry(id)); }
 function removeEntry(id, index)    { confirmRemoveEntry(id, index, '削除'); }
 
 function showMsg(el, text, type) {
