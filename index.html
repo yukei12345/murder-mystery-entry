@@ -184,6 +184,16 @@
     .filter-count { font-size: 0.72rem; margin-left: 0.3rem; opacity: 0.85; }
     .no-result { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 2rem 0; }
 
+    .filter-section { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; width: 100%; }
+    .filter-section + .filter-section {
+      padding-top: 0.65rem; margin-top: 0.15rem;
+      border-top: 1px dashed var(--border);
+    }
+    .filter-section-label {
+      font-size: 0.68rem; color: var(--muted); font-weight: 700;
+      letter-spacing: 0.06em; white-space: nowrap; min-width: 2.8rem;
+    }
+
     /* ── Category group ── */
     .category-group { margin-bottom: 2.5rem; }
     .category-heading { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
@@ -308,13 +318,14 @@
       padding: 0.25rem 0.65rem; font-size: 0.72rem; border-radius: 4px;
       cursor: pointer; font-family: inherit; font-weight: 600;
       border: 1px solid; text-align: center; line-height: 1;
-      transition: filter 0.15s;
+      transition: filter 0.15s, background 0.2s, border-color 0.2s;
     }
     .btn-xs:hover { filter: brightness(0.93); }
     .btn-xs:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 1px; }
     .btn-del   { background: #fff; color: var(--red);    border-color: var(--red); }
     .btn-save  { background: var(--accent); color: #fff;  border-color: var(--accent); }
     .btn-muted { background: #fff; color: var(--muted); border-color: var(--border-strong); }
+    .btn-save.dirty { background: #b86510; border-color: #b86510; }
 
     .msg { font-size: 0.73rem; margin-top: 0.4rem; min-height: 1rem; }
     .msg-ok  { color: var(--green); }
@@ -672,6 +683,7 @@ const ICON = {
 
 // ── メイン描画 ────────────────────────────────────────────
 let activeFilter = 'all';
+let activePlayerFilter = 'all'; // 'all' or a capacity number
 
 function getAllCats() {
   const cats = getCategories();
@@ -679,21 +691,50 @@ function getAllCats() {
   return hasUngrouped ? [...cats, 'その他'] : [...cats];
 }
 
+function getPlayerOptions() {
+  const caps = getWorks()
+    .map(w => getInfo(w).capacity)
+    .filter(c => c > 0);
+  return [...new Set(caps)].sort((a, b) => a - b);
+}
+
+function matchesPlayerFilter(w) {
+  if (activePlayerFilter === 'all') return true;
+  return getInfo(w).capacity === activePlayerFilter;
+}
+
 function setFilter(cat) { activeFilter = cat; render(); }
+function setPlayerFilter(val) { activePlayerFilter = val; render(); }
 
 function renderFilterBar() {
-  const cats  = getAllCats();
-  const works = getWorks();
-  const countOf = c => (c === 'その他')
-    ? works.filter(w => !getCategories().includes(getWorkCat(w))).length
-    : works.filter(w => getWorkCat(w) === c).length;
+  const cats    = getAllCats();
+  const works   = getWorks();
+  const playerOpts = getPlayerOptions();
 
-  document.getElementById('filterBar').innerHTML = [
-    `<button class="filter-chip ${activeFilter==='all'?'active':''}" aria-pressed="${activeFilter==='all'}" onclick="setFilter('all')">すべて<span class="filter-count">${works.length}</span></button>`,
+  const countOf = c => (c === 'その他')
+    ? works.filter(w => !getCategories().includes(getWorkCat(w)) && matchesPlayerFilter(w)).length
+    : works.filter(w => getWorkCat(w) === c && matchesPlayerFilter(w)).length;
+
+  const playerCountOf = cap =>
+    works.filter(w => getInfo(w).capacity === cap && (activeFilter === 'all' || getWorkCat(w) === activeFilter || (activeFilter === 'その他' && !getCategories().includes(getWorkCat(w))))).length;
+
+  const catSection = [
+    `<button class="filter-chip ${activeFilter==='all'?'active':''}" aria-pressed="${activeFilter==='all'}" onclick="setFilter('all')">すべて<span class="filter-count">${works.filter(w => matchesPlayerFilter(w)).length}</span></button>`,
     ...cats.map(c =>
       `<button class="filter-chip ${activeFilter===c?'active':''}" aria-pressed="${activeFilter===c}" onclick="setFilter('${esc(c)}')">${esc(c)}<span class="filter-count">${countOf(c)}</span></button>`
     ),
   ].join('');
+
+  const playerSection = playerOpts.length ? [
+    `<button class="filter-chip ${activePlayerFilter==='all'?'active':''}" aria-pressed="${activePlayerFilter==='all'}" onclick="setPlayerFilter('all')">すべて</button>`,
+    ...playerOpts.map(cap =>
+      `<button class="filter-chip ${activePlayerFilter===cap?'active':''}" aria-pressed="${activePlayerFilter===cap}" onclick="setPlayerFilter(${cap})">${cap}名<span class="filter-count">${playerCountOf(cap)}</span></button>`
+    ),
+  ].join('') : '';
+
+  document.getElementById('filterBar').innerHTML =
+    `<div class="filter-section"><span class="filter-section-label">カテゴリ</span>${catSection}</div>` +
+    (playerSection ? `<div class="filter-section"><span class="filter-section-label">最大人数</span>${playerSection}</div>` : '');
 }
 
 function render() {
@@ -705,8 +746,9 @@ function render() {
   if (activeFilter !== 'all' && !getAllCats().includes(activeFilter)) activeFilter = 'all';
   renderFilterBar();
 
-  let groups = cats.map(cat => ({ cat, works: works.filter(w => getWorkCat(w) === cat) })).filter(g => g.works.length > 0);
-  const ungrouped = works.filter(w => !cats.includes(getWorkCat(w)));
+  const filtered = works.filter(w => matchesPlayerFilter(w));
+  let groups = cats.map(cat => ({ cat, works: filtered.filter(w => getWorkCat(w) === cat) })).filter(g => g.works.length > 0);
+  const ungrouped = filtered.filter(w => !cats.includes(getWorkCat(w)));
   if (ungrouped.length) groups.push({ cat: 'その他', works: ungrouped });
   if (activeFilter !== 'all') groups = groups.filter(g => g.cat === activeFilter);
 
@@ -930,16 +972,16 @@ function renderAdmin() {
           </span>
           <span style="font-size:0.7rem;color:var(--muted)">ドラッグで並び替え</span>
         </div>
-        <div class="field-row"><span class="field-label">作品名</span><input class="a-input fill" id="i-title-${w.id}"    value="${esc(info.title)}"           maxlength="40" /></div>
-        <div class="field-row"><span class="field-label">人数</span>  <input class="a-input fill" id="i-players-${w.id}"  value="${esc(info.players)}"         maxlength="20" /></div>
-        <div class="field-row"><span class="field-label">定員</span>  <input class="a-input" id="i-capacity-${w.id}" type="number" min="0" max="99" value="${info.capacity}" style="width:5rem" /><span class="field-hint">名（0で無制限）</span></div>
-        <div class="field-row"><span class="field-label">時間</span>  <input class="a-input fill" id="i-time-${w.id}"     value="${esc(info.time)}"            maxlength="20" /></div>
-        <div class="field-row"><span class="field-label">作者</span>  <input class="a-input fill" id="i-author-${w.id}"   value="${esc(info.author)}"          maxlength="40" /></div>
-        <div class="field-row"><span class="field-label">金額</span>  <input class="a-input fill" id="i-price-${w.id}"    value="${esc(info.price)}"           maxlength="20" placeholder="例：2,000円" /></div>
-        <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="i-tags-${w.id}"     value="${esc(info.tags.join(','))}"  maxlength="100" placeholder="カンマ区切りで入力" /></div>
+        <div class="field-row"><span class="field-label">作品名</span><input class="a-input fill" id="i-title-${w.id}"    value="${esc(info.title)}"           maxlength="40"  oninput="markDirty('${w.id}')" /></div>
+        <div class="field-row"><span class="field-label">人数</span>  <input class="a-input fill" id="i-players-${w.id}"  value="${esc(info.players)}"         maxlength="20"  oninput="markDirty('${w.id}')" /></div>
+        <div class="field-row"><span class="field-label">定員</span>  <input class="a-input" id="i-capacity-${w.id}" type="number" min="0" max="99" value="${info.capacity}" style="width:5rem" oninput="markDirty('${w.id}')" /><span class="field-hint">名（0で無制限）</span></div>
+        <div class="field-row"><span class="field-label">時間</span>  <input class="a-input fill" id="i-time-${w.id}"     value="${esc(info.time)}"            maxlength="20"  oninput="markDirty('${w.id}')" /></div>
+        <div class="field-row"><span class="field-label">作者</span>  <input class="a-input fill" id="i-author-${w.id}"   value="${esc(info.author)}"          maxlength="40"  oninput="markDirty('${w.id}')" /></div>
+        <div class="field-row"><span class="field-label">金額</span>  <input class="a-input fill" id="i-price-${w.id}"    value="${esc(info.price)}"           maxlength="20"  oninput="markDirty('${w.id}')" placeholder="例：2,000円" /></div>
+        <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="i-tags-${w.id}"     value="${esc(info.tags.join(','))}"  maxlength="100" oninput="markDirty('${w.id}')" placeholder="カンマ区切りで入力" /></div>
         <div class="field-row"><span class="field-label">カテゴリ</span><select class="a-select" id="i-cat-${w.id}" onchange="saveWorkCat('${w.id}')">${catOpts}</select></div>
         <div class="field-row" style="margin-top:0.2rem">
-          <button class="btn-xs btn-save"  onclick="saveWorkInfo('${w.id}')">保存</button>
+          <button class="btn-xs btn-save"  data-save-btn="${w.id}" onclick="saveWorkInfo('${w.id}')">保存</button>
           <button class="btn-xs btn-muted" onclick="resetWorkInfo('${w.id}')">元に戻す</button>
           <button class="btn-xs btn-del"   onclick="askDeleteWork('${w.id}')">作品を削除</button>
         </div>
@@ -1024,6 +1066,20 @@ function deleteCat(i) {
   });
 }
 
+// ── 管理画面ダーティステート ───────────────────────────────
+function markDirty(id) {
+  const btn = document.querySelector(`.btn-save[data-save-btn="${id}"]`);
+  if (btn) { btn.classList.add('dirty'); btn.textContent = '● 未保存'; }
+}
+
+function clearDirty(id) {
+  const btn = document.querySelector(`.btn-save[data-save-btn="${id}"]`);
+  if (!btn) return;
+  btn.classList.remove('dirty');
+  btn.textContent = '✓ 保存済み';
+  setTimeout(() => { if (btn) btn.textContent = '保存'; }, 2000);
+}
+
 // ── 作品情報操作 ──────────────────────────────────────────
 function saveWorkInfo(id) {
   const title    = document.getElementById(`i-title-${id}`).value.trim();
@@ -1035,7 +1091,7 @@ function saveWorkInfo(id) {
   const capacity = Math.max(0, parseInt(document.getElementById(`i-capacity-${id}`).value, 10) || 0);
   if (!title) return;
 
-  const commit  = () => saveInfo(id, { title, players, time, author, price, tags, capacity });
+  const commit  = () => saveInfo(id, { title, players, time, author, price, tags, capacity }).then(() => clearDirty(id));
   const current = (fbState.entries[id] || []).length;
   if (capacity > 0 && capacity < current) {
     openConfirm({
