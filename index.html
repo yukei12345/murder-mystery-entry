@@ -689,8 +689,22 @@
       <div class="field-row"><span class="field-label">金額</span>  <input class="a-input fill" id="editModal-price"    maxlength="20" placeholder="例：2,000円" /></div>
       <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="editModal-tags"      maxlength="100" placeholder="カンマ区切りで入力" /></div>
       <div class="field-row"><span class="field-label">カテゴリ</span><select class="a-select" id="editModal-cat"></select></div>
-      <div class="field-row"><span class="field-label">作品URL</span><input class="a-input fill" id="editModal-url"       maxlength="500" placeholder="https://..." /></div>
-      <div class="field-row"><span class="field-label">画像URL</span><input class="a-input fill" id="editModal-thumbnail" maxlength="500" placeholder="https://..." /></div>
+      <div class="field-row"><span class="field-label">作品URL</span><input class="a-input fill" id="editModal-url" maxlength="500" placeholder="https://..." /></div>
+      <div class="field-row" style="align-items:flex-start">
+        <span class="field-label" style="padding-top:0.3rem">画像</span>
+        <div style="flex:1;display:flex;flex-direction:column;gap:0.45rem">
+          <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+            <input type="file" id="editModal-thumbnail-file" accept="image/*" style="display:none" onchange="handleThumbnailUpload(this)" />
+            <button type="button" class="btn-xs btn-muted" onclick="document.getElementById('editModal-thumbnail-file').click()">📁 ファイルを選択</button>
+            <span id="editModal-upload-status" style="font-size:0.72rem;color:var(--muted)"></span>
+          </div>
+          <div id="editModal-thumbnail-preview" style="display:none">
+            <img id="editModal-thumbnail-img" src="" alt="" style="max-width:100%;max-height:120px;border-radius:6px;object-fit:cover;border:1px solid var(--border)" />
+            <button type="button" class="btn-xs btn-del" style="margin-top:0.3rem;font-size:0.68rem" onclick="clearThumbnail()">画像を削除</button>
+          </div>
+          <input class="a-input fill" id="editModal-thumbnail" maxlength="500" placeholder="または画像URLを直接入力" oninput="updateThumbnailPreview(this.value)" />
+        </div>
+      </div>
       <hr style="border:none;border-top:1px solid var(--border);margin:0.4rem 0" />
       <div class="field-row"><span class="field-label">状態</span>
         <select class="a-select" id="editModal-status">
@@ -1380,9 +1394,12 @@ function openEditModal(id) {
   document.getElementById('editModal-status').value      = info.status;
   document.getElementById('editModal-scheduledAt').value = info.scheduledAt;
   document.getElementById('editModal-venue').value       = info.venue;
-  document.getElementById('editModal-url').value         = info.url;
-  document.getElementById('editModal-thumbnail').value   = info.thumbnail;
-  document.getElementById('editModal-msg').textContent = '';
+  document.getElementById('editModal-url').value             = info.url;
+  document.getElementById('editModal-thumbnail').value       = info.thumbnail;
+  document.getElementById('editModal-thumbnail-file').value  = '';
+  document.getElementById('editModal-upload-status').textContent = '';
+  document.getElementById('editModal-msg').textContent       = '';
+  updateThumbnailPreview(info.thumbnail);
   document.getElementById('editModalOverlay').classList.add('open');
   document.getElementById('editModal-title').focus();
 }
@@ -1428,6 +1445,60 @@ function saveEditModal() {
     return;
   }
   commit();
+}
+
+// ── サムネイルアップロード ────────────────────────────────
+function updateThumbnailPreview(url) {
+  const preview = document.getElementById('editModal-thumbnail-preview');
+  const img     = document.getElementById('editModal-thumbnail-img');
+  if (url && url.trim()) {
+    img.src = url.trim();
+    preview.style.display = 'block';
+  } else {
+    img.src = '';
+    preview.style.display = 'none';
+  }
+}
+
+function clearThumbnail() {
+  document.getElementById('editModal-thumbnail').value = '';
+  document.getElementById('editModal-thumbnail-file').value = '';
+  updateThumbnailPreview('');
+}
+
+function handleThumbnailUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const statusEl = document.getElementById('editModal-upload-status');
+  statusEl.style.color = 'var(--muted)';
+  statusEl.textContent = '処理中...';
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      // 幅480pxにリサイズ（縦横比維持）
+      const MAX_W = 480;
+      const scale = img.width > MAX_W ? MAX_W / img.width : 1;
+      const w = Math.round(img.width  * scale);
+      const h = Math.round(img.height * scale);
+
+      const canvas = document.createElement('canvas');
+      canvas.width  = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+      document.getElementById('editModal-thumbnail').value = dataUrl;
+      updateThumbnailPreview(dataUrl);
+      statusEl.style.color = 'var(--green)';
+      statusEl.textContent = `✓ 完了（${Math.round(dataUrl.length / 1024)}KB）`;
+      setTimeout(() => { statusEl.textContent = ''; statusEl.style.color = ''; }, 4000);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 // モーダル外クリック・Escで閉じる
