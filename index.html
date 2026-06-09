@@ -915,7 +915,7 @@ function renderAdmin() {
         ).join('')
       : '<span style="color:#7a8475">なし</span>';
 
-    return `<tr draggable="true" data-id="${w.id}"
+    return `<tr draggable="false" data-id="${w.id}"
          ondragstart="onAdminDragStart(event,'${w.id}')"
          ondragover="onAdminDragOver(event)"
          ondragleave="onAdminDragLeave(event)"
@@ -923,7 +923,9 @@ function renderAdmin() {
          ondragend="onAdminDragEnd(event)">
       <td>
         <div class="field-row" style="margin-bottom:0.6rem">
-          <span class="admin-drag-handle" title="ドラッグして並び替え" aria-hidden="true">
+          <span class="admin-drag-handle" title="ドラッグして並び替え" aria-hidden="true"
+                onmousedown="this.closest('tr').draggable=true"
+                onmouseup="this.closest('tr').draggable=false">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
           </span>
           <span style="font-size:0.7rem;color:var(--muted)">ドラッグで並び替え</span>
@@ -1172,8 +1174,10 @@ function onAdminDragLeave(e) {
 }
 
 function onAdminDragEnd(e) {
+  e.currentTarget.draggable = false;
   document.querySelectorAll('#adminView tr').forEach(el => {
     el.classList.remove('dragging', 'drag-over');
+    el.draggable = false;
   });
 }
 
