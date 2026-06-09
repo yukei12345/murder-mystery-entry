@@ -191,15 +191,27 @@
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); overflow: hidden;
       box-shadow: 0 1px 2px rgba(31,42,35,0.04);
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s, opacity 0.15s;
     }
     .work:hover { box-shadow: 0 4px 14px rgba(31,42,35,0.07); }
     .work:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+    .work.dragging { opacity: 0.4; }
+    .work.drag-over { border-color: var(--accent); border-style: dashed; box-shadow: 0 0 0 2px var(--accent-soft); }
+
+    /* ドラッグハンドル */
+    .drag-handle {
+      display: flex; align-items: center; padding: 0 0.5rem;
+      color: var(--border-strong); cursor: grab; flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .drag-handle:hover { color: var(--accent); }
+    .drag-handle:active { cursor: grabbing; }
 
     .work-header {
-      padding: 0.9rem 1.25rem 0.75rem; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+      padding: 0.9rem 1.25rem 0.75rem 0.75rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
     }
+    .work-header-left { display: flex; align-items: center; gap: 0.25rem; flex: 1; min-width: 0; }
     .work-title { font-weight: 700; font-size: 1rem; color: var(--text); }
     .work-badge {
       flex-shrink: 0; background: var(--accent-soft); border: 1px solid transparent;
@@ -547,7 +559,7 @@ const WORKS = [
 const ADMIN_PASS = 'mystery'; // ← パスワードをここで変更
 
 // ── Firebase 状態（リアルタイム同期） ────────────────────
-let fbState = { entries: {}, categories: null, workcats: {}, workinfo: {}, deleted: [], customWorks: {} };
+let fbState = { entries: {}, categories: null, workcats: {}, workinfo: {}, deleted: [], customWorks: {}, workOrder: [] };
 let fbReady = false;
 
 rootRef.on('value', (snapshot) => {
@@ -556,8 +568,9 @@ rootRef.on('value', (snapshot) => {
   fbState.categories = data.categories  || null;
   fbState.workcats   = data.workcats    || {};
   fbState.workinfo   = data.workinfo    || {};
-  fbState.deleted    = data.deleted     || [];
+  fbState.deleted     = data.deleted     || [];
   fbState.customWorks = data.customWorks || {};
+  fbState.workOrder   = data.workOrder   || [];
   fbReady = true;
   setSyncOnline(true);
   render();
@@ -583,12 +596,18 @@ function fbSet(path, value) { return rootRef.child(path).set(value); }
 // ── データアクセサ ────────────────────────────────────────
 function getDeleted()    { return fbState.deleted; }
 function getWorks() {
-  const del     = getDeleted();
-  const base    = WORKS.filter(w => !del.includes(w.id));
-  const custom  = Object.entries(fbState.customWorks)
+  const del    = getDeleted();
+  const base   = WORKS.filter(w => !del.includes(w.id));
+  const custom = Object.entries(fbState.customWorks)
     .filter(([id]) => !del.includes(id))
     .map(([id, w]) => ({ ...w, id }));
-  return [...base, ...custom];
+  const all    = [...base, ...custom];
+  const order  = fbState.workOrder;
+  if (!order.length) return all;
+  // workOrder に従って並べ、未登録のものは末尾に追加
+  const ordered = order.map(id => all.find(w => w.id === id)).filter(Boolean);
+  const rest    = all.filter(w => !order.includes(w.id));
+  return [...ordered, ...rest];
 }
 function getCategories() { return fbState.categories || [...DEFAULT_CATEGORIES]; }
 function getWorkCat(w)   { return fbState.workcats[w.id] || w.defaultCat || getCategories()[0] || ''; }
@@ -706,9 +725,19 @@ function renderWork(w, entries) {
         </div>`;
 
   return `
-    <div class="work">
+    <div class="work" draggable="true" data-id="${w.id}"
+         ondragstart="onDragStart(event,'${w.id}')"
+         ondragover="onDragOver(event)"
+         ondragleave="onDragLeave(event)"
+         ondrop="onDrop(event,'${w.id}')"
+         ondragend="onDragEnd(event)">
       <div class="work-header">
-        <span class="work-title">${esc(info.title)}</span>
+        <div class="work-header-left">
+          <span class="drag-handle" title="ドラッグして並び替え" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="5" r="1" fill="currentColor"/><circle cx="9" cy="12" r="1" fill="currentColor"/><circle cx="9" cy="19" r="1" fill="currentColor"/><circle cx="15" cy="5" r="1" fill="currentColor"/><circle cx="15" cy="12" r="1" fill="currentColor"/><circle cx="15" cy="19" r="1" fill="currentColor"/></svg>
+          </span>
+          <span class="work-title">${esc(info.title)}</span>
+        </div>
         <span class="${badgeClass}">${badge}</span>
       </div>
       <div class="work-info">
@@ -1088,6 +1117,47 @@ function addNewWork() {
     document.getElementById('new-capacity').value = '0';
     showMsg(msgEl, `「${title}」を追加しました`, 'ok');
   });
+}
+
+// ── ドラッグ&ドロップ並び替え ────────────────────────────
+let dragSrcId = null;
+
+function onDragStart(e, id) {
+  dragSrcId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => e.target.classList.add('dragging'), 0);
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const card = e.currentTarget;
+  if (card.dataset.id !== dragSrcId) card.classList.add('drag-over');
+}
+
+function onDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function onDragEnd(e) {
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.work').forEach(el => el.classList.remove('drag-over'));
+}
+
+function onDrop(e, targetId) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!dragSrcId || dragSrcId === targetId) return;
+
+  const works = getWorks();
+  const ids   = works.map(w => w.id);
+  const from  = ids.indexOf(dragSrcId);
+  const to    = ids.indexOf(targetId);
+  if (from === -1 || to === -1) return;
+
+  ids.splice(from, 1);
+  ids.splice(to, 0, dragSrcId);
+  fbSet('workOrder', ids);
 }
 
 // ── utils ─────────────────────────────────────────────────
