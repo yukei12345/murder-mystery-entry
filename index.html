@@ -245,8 +245,8 @@
     }
 
     /* サムネイル */
-    .work-thumbnail { width: 100%; overflow: hidden; border-bottom: 1px solid var(--border); background: var(--surface2); }
-    .work-thumbnail img { width: 100%; height: 180px; object-fit: cover; display: block; }
+    .work-thumbnail { width: 100%; overflow: hidden; border-bottom: 1px solid var(--border); background: #111; }
+    .work-thumbnail img { width: 100%; height: auto; max-height: 360px; object-fit: contain; display: block; }
 
     /* 作品URL */
     .work-url-link {
@@ -1246,7 +1246,7 @@ function renderAdmin() {
          ondragleave="onAdminDragLeave(event)"
          ondrop="onAdminDrop(event,'${w.id}')"
          ondragend="onAdminDragEnd(event)">
-      ${info.thumbnail ? `<div class="work-thumbnail" style="max-height:120px"><img src="${esc(info.thumbnail)}" alt="" loading="lazy" style="height:120px" onerror="this.closest('.work-thumbnail').style.display='none'" /></div>` : ''}
+      ${info.thumbnail ? `<div class="work-thumbnail"><img src="${esc(info.thumbnail)}" alt="" loading="lazy" style="max-height:140px" onerror="this.closest('.work-thumbnail').style.display='none'" /></div>` : ''}
       <div class="admin-card-header">
         <span class="admin-drag-handle" title="ドラッグして並び替え" aria-hidden="true"
               onmousedown="this.closest('.admin-card').draggable=true"
