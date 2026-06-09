@@ -281,11 +281,43 @@
     .entry-empty { font-size: 0.73rem; color: var(--muted); align-self: center; }
 
     .work-badge-full { background: var(--red) !important; color: #fff !important; border-color: var(--red) !important; font-weight: 700; }
-    /* 満員カード：左ボーダーを赤くして一目で判別 */
+    /* 満員カード */
     .work.is-full { border-left: 3px solid var(--red); }
     .work.is-full .work-header { background: rgba(176,61,46,0.04); }
     .admin-card.is-full { border-left: 3px solid var(--red); }
     .admin-card.is-full .admin-card-header { background: rgba(176,61,46,0.06); }
+
+    /* ── ステータス ── */
+    .status-badge {
+      flex-shrink: 0; border-radius: 20px; font-size: 0.7rem;
+      padding: 0.15rem 0.65rem; font-weight: 700; white-space: nowrap;
+    }
+    .status-confirmed { background: var(--accent); color: #fff; }
+    .status-done      { background: var(--muted);  color: #fff; }
+
+    /* 開催確定：日時・場所バー */
+    .work-schedule {
+      display: flex; flex-wrap: wrap; gap: 0.35rem 0.8rem;
+      padding: 0.5rem 1.25rem; border-bottom: 1px solid var(--border);
+      background: var(--accent-soft); font-size: 0.78rem; color: var(--accent-dark); font-weight: 500;
+    }
+    .work-schedule-item { display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; flex-shrink: 0; }
+
+    /* 開催済みカードはグレーアウト */
+    .work.is-done { opacity: 0.6; }
+    .admin-card.is-done .admin-card-header { background: var(--surface2); }
+    .admin-card.is-done { opacity: 0.72; }
+
+    /* 開催済みトグル */
+    .archived-toggle-btn {
+      background: none; border: 1px solid var(--border-strong); border-radius: 20px;
+      padding: 0.35rem 0.9rem; font-size: 0.75rem; color: var(--muted);
+      cursor: pointer; font-family: inherit; transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 0.35rem;
+    }
+    .archived-toggle-btn.active { background: var(--muted); color: #fff; border-color: var(--muted); }
+    .archived-toggle-btn:hover:not(.active) { border-color: var(--text); color: var(--text); }
+    .archived-toggle-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .full-notice {
       font-size: 0.78rem; color: var(--muted);
       background: var(--surface2); border: 1px dashed var(--border-strong);
@@ -616,6 +648,16 @@
       <div class="field-row"><span class="field-label">金額</span>  <input class="a-input fill" id="editModal-price"    maxlength="20" placeholder="例：2,000円" /></div>
       <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="editModal-tags"     maxlength="100" placeholder="カンマ区切りで入力" /></div>
       <div class="field-row"><span class="field-label">カテゴリ</span><select class="a-select" id="editModal-cat"></select></div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:0.4rem 0" />
+      <div class="field-row"><span class="field-label">状態</span>
+        <select class="a-select" id="editModal-status">
+          <option value="recruiting">募集中</option>
+          <option value="confirmed">開催確定</option>
+          <option value="done">開催済み</option>
+        </select>
+      </div>
+      <div class="field-row"><span class="field-label">開催日時</span><input class="a-input fill" id="editModal-scheduledAt" maxlength="40" placeholder="例：7/20(日) 14:00" /></div>
+      <div class="field-row"><span class="field-label">場所</span>    <input class="a-input fill" id="editModal-venue"       maxlength="60" placeholder="例：〇〇カフェ 2F" /></div>
     </div>
     <p class="msg" id="editModal-msg" role="status" aria-live="polite"></p>
     <div class="edit-modal-actions">
@@ -733,13 +775,16 @@ function getInfo(w) {
   const saved   = fbState.workinfo[w.id] || {};
   const players = saved.players ?? w.players ?? '';
   return {
-    title:    saved.title    ?? w.title    ?? '',
-    players:  players,
-    time:     saved.time     ?? w.time     ?? '',
-    author:   saved.author   ?? w.author   ?? '',
-    price:    saved.price    ?? w.price    ?? '',
-    tags:     toArr(saved.tags ?? w.tags),
-    capacity: (saved.capacity ?? w.capacity ?? guessCapacity(players)) || 0,
+    title:       saved.title       ?? w.title    ?? '',
+    players:     players,
+    time:        saved.time        ?? w.time     ?? '',
+    author:      saved.author      ?? w.author   ?? '',
+    price:       saved.price       ?? w.price    ?? '',
+    tags:        toArr(saved.tags  ?? w.tags),
+    capacity:    (saved.capacity   ?? w.capacity ?? guessCapacity(players)) || 0,
+    status:      saved.status      ?? 'recruiting',
+    scheduledAt: saved.scheduledAt ?? '',
+    venue:       saved.venue       ?? '',
   };
 }
 
@@ -761,6 +806,7 @@ const ICON = {
 // ── メイン描画 ────────────────────────────────────────────
 let activeFilter = 'all';
 let activePlayerFilter = 'all'; // 'all' or a capacity number
+let showArchived = false;
 
 function getAllCats() {
   const cats = getCategories();
@@ -782,6 +828,7 @@ function matchesPlayerFilter(w) {
 
 function setFilter(cat) { activeFilter = cat; render(); }
 function setPlayerFilter(val) { activePlayerFilter = val; render(); }
+function toggleArchived() { showArchived = !showArchived; render(); }
 
 function renderFilterBar() {
   const cats    = getAllCats();
@@ -809,9 +856,21 @@ function renderFilterBar() {
     ),
   ].join('') : '';
 
+  const archivedCount = getWorks().filter(w => getInfo(w).status === 'done').length;
+  const archivedSection = archivedCount > 0
+    ? `<div class="filter-section" style="justify-content:flex-end">
+        <button class="archived-toggle-btn ${showArchived ? 'active' : ''}"
+                onclick="toggleArchived()"
+                aria-pressed="${showArchived}">
+          ${showArchived ? '✓ 開催済みを表示中' : `開催済みを表示（${archivedCount}件）`}
+        </button>
+       </div>`
+    : '';
+
   document.getElementById('filterBar').innerHTML =
     `<div class="filter-section"><span class="filter-section-label">カテゴリ</span>${catSection}</div>` +
-    (playerSection ? `<div class="filter-section"><span class="filter-section-label">最大人数</span>${playerSection}</div>` : '');
+    (playerSection ? `<div class="filter-section"><span class="filter-section-label">最大人数</span>${playerSection}</div>` : '') +
+    archivedSection;
 }
 
 function render() {
@@ -823,7 +882,9 @@ function render() {
   if (activeFilter !== 'all' && !getAllCats().includes(activeFilter)) activeFilter = 'all';
   renderFilterBar();
 
-  const filtered = works.filter(w => matchesPlayerFilter(w));
+  const filtered = works.filter(w =>
+    matchesPlayerFilter(w) && (showArchived || getInfo(w).status !== 'done')
+  );
   let groups = cats.map(cat => ({ cat, works: filtered.filter(w => getWorkCat(w) === cat) })).filter(g => g.works.length > 0);
   const ungrouped = filtered.filter(w => !cats.includes(getWorkCat(w)));
   if (ungrouped.length) groups.push({ cat: 'その他', works: ungrouped });
@@ -842,9 +903,13 @@ function render() {
 }
 
 function renderWork(w, entries) {
-  const info   = getInfo(w);
-  const cap    = info.capacity;
-  const isFull = cap > 0 && entries.length >= cap;
+  const info     = getInfo(w);
+  const cap      = info.capacity;
+  const isFull   = cap > 0 && entries.length >= cap;
+  const status   = info.status; // 'recruiting' | 'confirmed' | 'done'
+  const isDone   = status === 'done';
+  const isConfirmed = status === 'confirmed';
+  const entryOpen   = status === 'recruiting' && !isFull;
 
   const chips = entries.length
     ? entries.map((n, i) =>
@@ -854,25 +919,51 @@ function renderWork(w, entries) {
 
   const tagHtml = info.tags.length ? info.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('') : '';
 
+  // 定員バッジ
   let badge, badgeClass = 'work-badge';
-  if (isFull)      { badge = '満員'; badgeClass += ' work-badge-full'; }
-  else if (cap > 0){ badge = `${entries.length}/${cap}名`; }
-  else             { badge = `${entries.length}名エントリー中`; }
+  if (isFull && !isConfirmed && !isDone) { badge = '満員'; badgeClass += ' work-badge-full'; }
+  else if (cap > 0) { badge = `${entries.length}/${cap}名`; }
+  else              { badge = `${entries.length}名エントリー中`; }
 
-  const formHtml = isFull
-    ? `<p class="full-notice">定員に達したため、現在エントリーを受け付けていません。</p>`
-    : `<div class="entry-form">
+  // ステータスバッジ
+  const statusBadge = isConfirmed
+    ? `<span class="status-badge status-confirmed">📅 開催確定</span>`
+    : isDone
+      ? `<span class="status-badge status-done">開催済み</span>`
+      : '';
+
+  // 開催日時・場所バー（確定時のみ）
+  const scheduleBar = isConfirmed && (info.scheduledAt || info.venue) ? `
+    <div class="work-schedule">
+      ${info.scheduledAt ? `<span class="work-schedule-item">🗓 ${esc(info.scheduledAt)}</span>` : ''}
+      ${info.venue       ? `<span class="work-schedule-item">📍 ${esc(info.venue)}</span>`       : ''}
+    </div>` : '';
+
+  // エントリーフォーム
+  let formHtml;
+  if (isDone) {
+    formHtml = `<p class="full-notice">この作品は開催済みです。</p>`;
+  } else if (isConfirmed) {
+    formHtml = `<p class="full-notice">開催が確定しました。エントリーの受付は終了しています。</p>`;
+  } else if (isFull) {
+    formHtml = `<p class="full-notice">定員に達したため、現在エントリーを受け付けていません。</p>`;
+  } else {
+    formHtml = `<div class="entry-form">
           <input class="entry-input" id="input-${w.id}" placeholder="名前を入力" maxlength="20"
                  aria-label="${esc(info.title)} に参加する名前を入力"
                  onkeydown="if(event.key==='Enter') doEntry('${w.id}')" />
           <button class="btn btn-primary" onclick="doEntry('${w.id}')">エントリー</button>
         </div>`;
+  }
+
+  const cardClass = ['work', isFull && !isConfirmed && !isDone ? 'is-full' : '', isDone ? 'is-done' : ''].filter(Boolean).join(' ');
 
   return `
-    <div class="work${isFull ? ' is-full' : ''}" data-id="${w.id}">
+    <div class="${cardClass}" data-id="${w.id}">
       <div class="work-header">
         <span class="work-title">${esc(info.title)}</span>
         <span class="${badgeClass}">${badge}</span>
+        ${statusBadge}
       </div>
       <div class="work-info">
         <span class="info-item"><span class="sr-only">参加人数</span>${ICON.person} ${esc(info.players)}</span>
@@ -881,6 +972,7 @@ function renderWork(w, entries) {
         ${info.author ? `<span class="info-sep" aria-hidden="true">·</span><span class="info-item"><span class="sr-only">作者</span>${ICON.author} ${esc(info.author)}</span>` : ''}
         ${info.price  ? `<span class="info-sep" aria-hidden="true">·</span><span class="info-item"><span class="sr-only">金額</span>${ICON.price} ${esc(info.price)}</span>` : ''}
       </div>
+      ${scheduleBar}
       ${tagHtml ? `<div class="work-tags">${tagHtml}</div>` : ''}
       <div class="work-bottom">
         ${entries.length ? '<div class="entries-label">エントリー済み</div>' : ''}
@@ -1025,16 +1117,24 @@ function renderAdmin() {
   const DRAG_HANDLE_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>`;
 
   const cards = getWorks().map(w => {
-    const info = getInfo(w);
-    const list = entries[w.id] || [];
-    const cap  = info.capacity;
+    const info   = getInfo(w);
+    const list   = entries[w.id] || [];
+    const cap    = info.capacity;
     const isFull = cap > 0 && list.length >= cap;
+    const isDone      = info.status === 'done';
+    const isConfirmed = info.status === 'confirmed';
 
     let countBadgeClass = 'work-badge';
     let countLabel;
     if (isFull)       { countBadgeClass += ' work-badge-full'; countLabel = `満員 ${list.length}/${cap}名`; }
     else if (cap > 0) { countLabel = `${list.length} / ${cap}名`; }
     else              { countLabel = `${list.length}名エントリー中`; }
+
+    const statusBadge = isConfirmed
+      ? `<span class="status-badge status-confirmed">📅 開催確定</span>`
+      : isDone
+        ? `<span class="status-badge status-done">開催済み</span>`
+        : '';
 
     const tagHtml = info.tags.length
       ? info.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')
@@ -1046,7 +1146,19 @@ function renderAdmin() {
         ).join('')
       : `<span style="color:var(--muted);font-size:0.73rem">エントリーなし</span>`;
 
-    return `<div class="admin-card${isFull ? ' is-full' : ''}" data-id="${w.id}"
+    const scheduleInfo = (isConfirmed || isDone) && (info.scheduledAt || info.venue)
+      ? `<div style="font-size:0.73rem;color:var(--accent-dark);margin-top:0.15rem;display:flex;flex-wrap:wrap;gap:0.3rem 0.7rem">
+           ${info.scheduledAt ? `<span>🗓 ${esc(info.scheduledAt)}</span>` : ''}
+           ${info.venue       ? `<span>📍 ${esc(info.venue)}</span>`       : ''}
+         </div>` : '';
+
+    const rerunBtn = isDone
+      ? `<button class="btn-xs btn-muted" onclick="askRerunWork('${w.id}')">🔄 再募集する</button>`
+      : '';
+
+    const cardClass = ['admin-card', isFull && !isConfirmed && !isDone ? 'is-full' : '', isDone ? 'is-done' : ''].filter(Boolean).join(' ');
+
+    return `<div class="${cardClass}" data-id="${w.id}"
          draggable="false"
          ondragstart="onAdminDragStart(event,'${w.id}')"
          ondragover="onAdminDragOver(event)"
@@ -1060,8 +1172,10 @@ function renderAdmin() {
         <span class="admin-card-title">${esc(info.title)}</span>
         <span class="work-badge" style="flex-shrink:0">${esc(getWorkCat(w))}</span>
         <span class="${countBadgeClass}" style="flex-shrink:0">${countLabel}</span>
+        ${statusBadge}
         <div class="admin-card-actions">
           <button class="btn-xs btn-save" onclick="openEditModal('${w.id}')">✏ 編集</button>
+          ${rerunBtn}
           <button class="btn-xs btn-del"  onclick="askDeleteWork('${w.id}')">削除</button>
         </div>
       </div>
@@ -1072,6 +1186,7 @@ function renderAdmin() {
           ${info.author ? `<span class="info-sep">·</span>${ICON.author} ${esc(info.author)}` : ''}
           ${info.price  ? `<span class="info-sep">·</span>${ICON.price}  ${esc(info.price)}`  : ''}
         </div>
+        ${scheduleInfo}
         ${tagHtml ? `<div class="admin-card-tags">${tagHtml}</div>` : ''}
         <div class="admin-card-entries-row">
           <span class="admin-card-entries-label">エントリー</span>
@@ -1167,14 +1282,17 @@ function openEditModal(id) {
   ).join('');
 
   document.getElementById('editModalHeading').textContent = `「${info.title}」を編集`;
-  document.getElementById('editModal-title').value    = info.title;
-  document.getElementById('editModal-players').value  = info.players;
-  document.getElementById('editModal-capacity').value = info.capacity;
-  document.getElementById('editModal-time').value     = info.time;
-  document.getElementById('editModal-author').value   = info.author;
-  document.getElementById('editModal-price').value    = info.price;
-  document.getElementById('editModal-tags').value     = info.tags.join(',');
-  document.getElementById('editModal-cat').innerHTML  = catOpts;
+  document.getElementById('editModal-title').value       = info.title;
+  document.getElementById('editModal-players').value     = info.players;
+  document.getElementById('editModal-capacity').value    = info.capacity;
+  document.getElementById('editModal-time').value        = info.time;
+  document.getElementById('editModal-author').value      = info.author;
+  document.getElementById('editModal-price').value       = info.price;
+  document.getElementById('editModal-tags').value        = info.tags.join(',');
+  document.getElementById('editModal-cat').innerHTML     = catOpts;
+  document.getElementById('editModal-status').value      = info.status;
+  document.getElementById('editModal-scheduledAt').value = info.scheduledAt;
+  document.getElementById('editModal-venue').value       = info.venue;
   document.getElementById('editModal-msg').textContent = '';
   document.getElementById('editModalOverlay').classList.add('open');
   document.getElementById('editModal-title').focus();
@@ -1195,13 +1313,16 @@ function saveEditModal() {
   const author   = document.getElementById('editModal-author').value.trim();
   const price    = document.getElementById('editModal-price').value.trim();
   const tags     = document.getElementById('editModal-tags').value.split(',').map(t => t.trim()).filter(Boolean);
-  const cat      = document.getElementById('editModal-cat').value;
-  const msgEl    = document.getElementById('editModal-msg');
+  const cat         = document.getElementById('editModal-cat').value;
+  const status      = document.getElementById('editModal-status').value;
+  const scheduledAt = document.getElementById('editModal-scheduledAt').value.trim();
+  const venue       = document.getElementById('editModal-venue').value.trim();
+  const msgEl       = document.getElementById('editModal-msg');
 
   if (!title) { showMsg(msgEl, '作品名は必須です', 'err'); return; }
 
   const commit = () => {
-    saveInfo(id, { title, players, time, author, price, tags, capacity });
+    saveInfo(id, { title, players, time, author, price, tags, capacity, status, scheduledAt, venue });
     fbSet(`workcats/${id}`, cat);
     closeEditModal();
   };
@@ -1298,6 +1419,35 @@ function clearAll() {
     okLabel: 'リセットする',
     onConfirm: () => fbSet('entries', null),
   });
+}
+
+// ── 再募集 ───────────────────────────────────────────────
+function askRerunWork(id) {
+  const w     = getWorks().find(x => x.id === id);
+  if (!w) return;
+  const title = getInfo(w).title;
+  const count = (fbState.entries[id] || []).length;
+  openConfirm({
+    title: '再募集の確認',
+    message: `<strong>${esc(title)}</strong> を再募集します。<br>現在のエントリー（<strong>${count}名</strong>）は開催履歴として保存され、エントリーはリセットされます。<br>よろしいですか？`,
+    okLabel: '再募集する', danger: false,
+    onConfirm: () => rerunWork(id),
+  });
+}
+
+function rerunWork(id) {
+  const entries = fbState.entries[id] || [];
+  const info    = getInfo(getWorks().find(x => x.id === id));
+  // 開催履歴として保存
+  const histRef = db.ref(`mm/history/${id}`);
+  histRef.once('value').then(snap => {
+    const prev = snap.val() ? (Array.isArray(snap.val()) ? snap.val() : Object.values(snap.val())) : [];
+    prev.push({ savedAt: Date.now(), scheduledAt: info.scheduledAt, venue: info.venue, entries });
+    histRef.set(prev);
+  });
+  // エントリーリセット・ステータスを募集中に戻す
+  fbSet(`entries/${id}`, null);
+  saveInfo(id, { ...info, status: 'recruiting', scheduledAt: '', venue: '' });
 }
 
 // ── 作品削除 ─────────────────────────────────────────────
