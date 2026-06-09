@@ -244,9 +244,25 @@
       color: var(--accent-dark); white-space: nowrap;
     }
 
-    /* サムネイル */
+    /* サムネイル（管理画面カード用・上部表示） */
     .work-thumbnail { width: 100%; overflow: hidden; border-bottom: 1px solid var(--border); background: #111; }
-    .work-thumbnail img { width: 100%; height: auto; max-height: 360px; object-fit: contain; display: block; }
+    .work-thumbnail img { width: 100%; height: auto; max-height: 140px; object-fit: contain; display: block; }
+
+    /* 公開ビュー：左カラムサムネイル */
+    .work { display: flex; flex-direction: row; align-items: stretch; }
+    .work-thumb-col {
+      width: 100px; flex-shrink: 0;
+      background: #111; border-right: 1px solid var(--border);
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+    }
+    .work-thumb-col img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .work-no-image {
+      width: 100%; height: 100%; min-height: 130px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; color: #555; font-weight: 700; letter-spacing: 0.08em;
+      background: #1a1a1a;
+    }
+    .work-main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
     /* 作品URL */
     .work-url-link {
@@ -582,8 +598,9 @@
       main { padding: 1.5rem 0.9rem 4rem; }
       .filter-bar { gap: 0.4rem; margin-bottom: 1.5rem; }
       .filter-chip { padding: 0.35rem 0.8rem; font-size: 0.75rem; }
-      .work-header { padding: 0.8rem 1rem 0.65rem; }
-      .work-info, .work-tags, .work-bottom { padding-left: 1rem; padding-right: 1rem; }
+      .work-thumb-col { width: 80px; }
+      .work-header { padding: 0.8rem 0.9rem 0.65rem; }
+      .work-info, .work-tags, .work-bottom { padding-left: 0.9rem; padding-right: 0.9rem; }
       .work-title { font-size: 0.95rem; }
       .entry-form .btn { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
       .admin-login { flex-wrap: wrap; }
@@ -1030,29 +1047,36 @@ function renderWork(w, entries) {
          作品ページ
        </a>` : '';
 
+  const thumbHtml = info.thumbnail
+    ? `<img src="${esc(info.thumbnail)}" alt="${esc(info.title)}" loading="lazy"
+           onerror="this.outerHTML='<div class=work-no-image>No Image</div>'" />`
+    : `<div class="work-no-image">No Image</div>`;
+
   return `
     <div class="${cardClass}" data-id="${w.id}">
-      ${info.thumbnail ? `<div class="work-thumbnail"><img src="${esc(info.thumbnail)}" alt="${esc(info.title)} サムネイル" loading="lazy" onerror="this.closest('.work-thumbnail').style.display='none'" /></div>` : ''}
-      <div class="work-header">
-        <span class="work-title">${esc(info.title)}</span>
-        <span class="${badgeClass}">${badge}</span>
-        ${statusBadge}
-      </div>
-      <div class="work-info">
-        <span class="info-item"><span class="sr-only">参加人数</span>${ICON.person} ${esc(info.players)}</span>
-        <span class="info-sep" aria-hidden="true">·</span>
-        <span class="info-item"><span class="sr-only">所要時間</span>${ICON.clock} ${esc(info.time)}</span>
-        ${info.author ? `<span class="info-sep" aria-hidden="true">·</span><span class="info-item"><span class="sr-only">作者</span>${ICON.author} ${esc(info.author)}</span>` : ''}
-        ${info.price  ? `<span class="info-sep" aria-hidden="true">·</span><span class="info-item"><span class="sr-only">金額</span>${ICON.price} ${esc(info.price)}</span>` : ''}
-        ${urlLink ? `<span class="info-sep" aria-hidden="true">·</span>${urlLink}` : ''}
-      </div>
-      ${scheduleBar}
-      ${tagHtml ? `<div class="work-tags">${tagHtml}</div>` : ''}
-      <div class="work-bottom">
-        ${entries.length ? '<div class="entries-label">エントリー済み</div>' : ''}
-        <div class="entry-list">${chips}</div>
-        ${formHtml}
-        <p class="msg" id="msg-${w.id}" role="status" aria-live="polite"></p>
+      <div class="work-thumb-col">${thumbHtml}</div>
+      <div class="work-main-col">
+        <div class="work-header">
+          <span class="work-title">${esc(info.title)}</span>
+          <span class="${badgeClass}">${badge}</span>
+          ${statusBadge}
+        </div>
+        <div class="work-info">
+          <span class="info-item"><span class="sr-only">参加人数</span>${ICON.person} ${esc(info.players)}</span>
+          <span class="info-sep" aria-hidden="true">·</span>
+          <span class="info-item"><span class="sr-only">所要時間</span>${ICON.clock} ${esc(info.time)}</span>
+          ${info.author ? `<span class="info-sep" aria-hidden="true">·</span><span class="info-item"><span class="sr-only">作者</span>${ICON.author} ${esc(info.author)}</span>` : ''}
+          ${info.price  ? `<span class="info-sep" aria-hidden="true">·</span><span class="info-item"><span class="sr-only">金額</span>${ICON.price} ${esc(info.price)}</span>` : ''}
+          ${urlLink ? `<span class="info-sep" aria-hidden="true">·</span>${urlLink}` : ''}
+        </div>
+        ${scheduleBar}
+        ${tagHtml ? `<div class="work-tags">${tagHtml}</div>` : ''}
+        <div class="work-bottom">
+          ${entries.length ? '<div class="entries-label">エントリー済み</div>' : ''}
+          <div class="entry-list">${chips}</div>
+          ${formHtml}
+          <p class="msg" id="msg-${w.id}" role="status" aria-live="polite"></p>
+        </div>
       </div>
     </div>`;
 }
