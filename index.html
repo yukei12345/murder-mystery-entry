@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>マーダーミステリー エントリー</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+    }
+
+    :root {
+      --bg:       #ffffff;
+      --surface:  #ffffff;
+      --surface2: #f7f8f6;
+      --border:   #e3e6e1;
+      --border-strong: #cdd2c9;
+      --accent:   #3f6b50;
+      --accent-dark: #345a43;
+      --accent-soft: #eef3ee;
+      --text:     #1f2a23;
+      --muted:    #5c6660;
+      --green:    #3f6b50;
+      --red:      #b03d2e;
+      --radius:   10px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      font-size: 14px;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      border-top: 3px solid var(--accent);
+      padding: 2.25rem 1.5rem 1.75rem;
+      text-align: center;
+      position: relative;
+    }
+    .header-eyebrow { font-size: 0.68rem; letter-spacing: 0.35em; color: var(--accent); text-transform: uppercase; margin-bottom: 0.6rem; font-weight: 700; }
+    header h1 { font-size: clamp(1.4rem, 4vw, 2rem); color: var(--text); letter-spacing: 0.05em; margin-bottom: 0.4rem; font-weight: 700; }
+    header h1 span { color: var(--accent); }
+    header p { font-size: 0.82rem; color: var(--muted); }
+    .header-pass {
+      margin-top: 0.9rem; display: inline-block;
+      font-size: 0.74rem; color: var(--muted);
+      background: var(--accent-soft); border: 1px solid var(--border);
+      border-radius: 20px; padding: 0.3rem 0.85rem;
+    }
+    .header-pass code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--accent-dark); font-weight: 700; letter-spacing: 0.03em;
+      user-select: all;
+    }
+    .header-admin-area {
+      position: absolute; top: 1.1rem; right: 1.1rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .header-admin-status {
+      font-size: 0.72rem; color: var(--accent-dark); font-weight: 700;
+      background: var(--accent-soft); border: 1px solid var(--border);
+      border-radius: 20px; padding: 0.25rem 0.7rem; white-space: nowrap;
+    }
+    .header-admin-btn {
+      background: var(--bg);
+    }
+
+    /* ── Main ── */
+    main { max-width: 700px; margin: 0 auto; padding: 2rem 1rem 5rem; }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      margin-bottom: 2rem; padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .filter-chip {
+      background: var(--bg); border: 1px solid var(--border-strong);
+      color: var(--text); font-family: inherit; font-size: 0.78rem;
+      padding: 0.4rem 0.95rem; border-radius: 20px; cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .filter-chip:hover { border-color: var(--accent); color: var(--accent); }
+    .filter-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .filter-chip.active {
+      background: var(--accent);
+      border-color: var(--accent); color: #fff; font-weight: 500;
+    }
+    .filter-count { opacity: 0.75; font-size: 0.72rem; margin-left: 0.3rem; }
+    .no-result { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 2rem 0; }
+
+    /* ── Category group ── */
+    .category-group { margin-bottom: 2.5rem; }
+    .category-heading { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+    .category-heading-label {
+      font-size: 0.8rem; letter-spacing: 0.08em; color: var(--text); font-weight: 700;
+      white-space: nowrap; padding-left: 0.6rem; border-left: 3px solid var(--accent);
+    }
+    .category-heading-line  { flex: 1; height: 1px; background: var(--border); }
+
+    /* ── Work card ── */
+    .works { display: flex; flex-direction: column; gap: 1rem; }
+
+    .work {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(31,42,35,0.04);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .work:hover { box-shadow: 0 4px 14px rgba(31,42,35,0.07); }
+    .work:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+
+    /* タイトルバー */
+    .work-header {
+      padding: 0.9rem 1.25rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .work-title { font-weight: 700; font-size: 1rem; color: var(--text); }
+    .work-badge {
+      flex-shrink: 0;
+      background: var(--accent-soft);
+      border: 1px solid transparent;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      padding: 0.15rem 0.65rem;
+      color: var(--accent-dark);
+      white-space: nowrap;
+    }
+
+    /* 情報行 */
+    .work-info {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+    .info-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .info-item svg { flex-shrink: 0; color: var(--accent); opacity: 0.9; }
+    .info-sep { color: var(--border-strong); font-size: 0.7rem; }
+
+    /* タグ */
+    .work-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding: 0.55rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .tag {
+      background: var(--bg);
+      border: 1px solid var(--border-strong);
+      color: var(--muted);
+      font-size: 0.68rem;
+      padding: 0.1rem 0.55rem;
+      border-radius: 4px;
+    }
+    .work-tags:empty { display: none; }
+
+    /* エントリー */
+    .work-bottom { padding: 0.9rem 1.25rem; }
+    .entries-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.05em; margin-bottom: 0.45rem; }
+    .entry-list { display: flex; flex-wrap: wrap; gap: 0.4rem; min-height: 1.8rem; margin-bottom: 0.8rem; }
+    .entry-chip {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: var(--accent-soft);
+      border: 1px solid transparent;
+      color: var(--accent-dark);
+      font-size: 0.73rem;
+      padding: 0.18rem 0.4rem 0.18rem 0.65rem;
+      border-radius: 20px;
+    }
+    .chip-remove {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 1.05rem; height: 1.05rem; border-radius: 50%;
+      border: none; cursor: pointer; padding: 0; line-height: 1;
+      font-size: 0.85rem; font-family: inherit;
+      background: rgba(63,107,80,0.15); color: var(--accent-dark);
+      transition: background 0.15s, color 0.15s;
+    }
+    .chip-remove:hover { background: var(--red); color: #fff; }
+    .chip-remove:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 1px; }
+    .entry-empty { font-size: 0.73rem; color: var(--muted); align-self: center; }
+
+    .work-badge-full {
+      background: var(--red) !important; color: #fff !important;
+      border-color: var(--red) !important; font-weight: 700;
+    }
+    .full-notice {
+      font-size: 0.78rem; color: var(--muted);
+      background: var(--surface2); border: 1px dashed var(--border-strong);
+      border-radius: var(--radius); padding: 0.6rem 0.8rem; text-align: center;
+    }
+    .field-hint { font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
+
+    .entry-form { display: flex; gap: 0.5rem; align-items: stretch; }
+    .entry-form .btn { flex-shrink: 0; white-space: nowrap; }
+    .entry-input {
+      flex: 1 1 auto;
+      min-width: 0;
+      background: var(--bg);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 0.5rem 0.75rem;
+      font-size: 16px; /* iOS自動ズーム防止 */
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .entry-input::placeholder { color: var(--muted); }
+    .entry-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+    /* ── Buttons ── */
+    .btn {
+      border: none; border-radius: var(--radius);
+      padding: 0.5rem 1rem; font-size: 0.82rem;
+      cursor: pointer; font-family: inherit; font-weight: 700;
+      transition: background 0.15s, filter 0.15s;
+    }
+    .btn:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 2px; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-dark); }
+
+    .btn-xs {
+      padding: 0.15rem 0.55rem; font-size: 0.68rem; border-radius: 4px;
+      cursor: pointer; font-family: inherit; border: 1px solid; transition: filter 0.15s;
+    }
+    .btn-xs:hover { filter: brightness(0.96); }
+    .btn-xs:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 1px; }
+    .btn-del   { background: #fff; color: var(--red);    border-color: var(--red); }
+    .btn-save  { background: var(--accent); color: #fff;  border-color: var(--accent); }
+    .btn-muted { background: #fff; color: var(--muted); border-color: var(--border-strong);}
+
+    .msg { font-size: 0.73rem; margin-top: 0.4rem; min-height: 1rem; }
+    .msg-ok  { color: var(--green); }
+    .msg-err { color: var(--red); }
+
+    /* ── Divider ── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0 1.5rem; }
+
+    /* ── Admin ── */
+    .admin-toggle {
+      background: var(--bg); border: 1px solid var(--border-strong); border-radius: var(--radius);
+      padding: 0.45rem 1.1rem; font-size: 0.78rem; cursor: pointer;
+      color: var(--muted); font-family: inherit; transition: border-color 0.15s, color 0.15s;
+    }
+    .admin-toggle:hover { border-color: var(--accent); color: var(--accent); }
+    .admin-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .admin-panel {
+      display: none;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+    .admin-panel.open { display: block; }
+    .admin-panel-inner { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+    .admin-login { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
+    .admin-login input {
+      background: var(--bg); border: 1px solid var(--border-strong);
+      border-radius: var(--radius); padding: 0.45rem 0.75rem;
+      font-size: 0.82rem; font-family: inherit; color: var(--text); outline: none;
+    }
+    .admin-login input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .pass-field { position: relative; display: flex; align-items: center; }
+    .pass-field input { padding-right: 3.2rem; }
+    .pass-toggle {
+      position: absolute; right: 0.4rem; border: none; background: none;
+      color: var(--accent); font-family: inherit; font-size: 0.72rem;
+      cursor: pointer; padding: 0.2rem 0.4rem; border-radius: 4px;
+    }
+    .pass-toggle:hover { text-decoration: underline; }
+    .pass-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .admin-err { color: var(--red); font-size: 0.78rem; margin-bottom: 0.5rem; }
+
+    .admin-section { margin-bottom: 2rem; }
+    .admin-section-title {
+      font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.75rem;
+      padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
+    }
+
+    /* カテゴリ管理 */
+    .cat-list { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
+    .cat-row  { display: flex; gap: 0.4rem; align-items: center; }
+
+    .add-cat-row { display: flex; gap: 0.4rem; }
+
+    /* 共通 admin input */
+    .a-input {
+      background: var(--bg); border: 1px solid var(--border-strong);
+      border-radius: 4px; padding: 0.35rem 0.6rem;
+      font-size: 0.82rem; font-family: inherit; color: var(--text); outline: none;
+    }
+    .a-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+    .a-input.fill { flex: 1; }
+
+    select.a-select {
+      background: var(--bg); border: 1px solid var(--border-strong);
+      border-radius: 4px; padding: 0.3rem 0.5rem;
+      font-size: 0.78rem; font-family: inherit; color: var(--text);
+      outline: none; cursor: pointer;
+    }
+    select.a-select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+
+    /* 作品テーブル */
+    .admin-table {
+      width: 100%; border-collapse: collapse; font-size: 0.8rem;
+      background: var(--surface); border-radius: var(--radius);
+      overflow: hidden; border: 1px solid var(--border);
+    }
+    .admin-table th, .admin-table td {
+      border: 1px solid var(--border); padding: 0.6rem 0.85rem;
+      text-align: left; vertical-align: top;
+    }
+    .admin-table th {
+      background: var(--surface2); color: var(--muted);
+      font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase;
+    }
+
+    .field-row { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.45rem; }
+    .field-row:last-child { margin-bottom: 0; }
+    .field-label { font-size: 0.7rem; color: var(--muted); white-space: nowrap; min-width: 2.5rem; }
+
+    .admin-name-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
+
+    .count-badge {
+      display: inline-block;
+      background: var(--accent-soft); border: 1px solid transparent;
+      color: var(--accent-dark); border-radius: 20px; padding: 0.1rem 0.55rem; font-size: 0.72rem;
+    }
+
+    .reset-btn {
+      margin-top: 1rem; background: #fff; border: 1px solid var(--border-strong);
+      border-radius: var(--radius); padding: 0.4rem 0.9rem; font-size: 0.75rem;
+      cursor: pointer; color: var(--muted); font-family: inherit;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .reset-btn:hover { border-color: var(--red); color: var(--red); }
+    .reset-btn:focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      background: rgba(31,42,35,0.45);
+      align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff; border-radius: 14px; max-width: 380px; width: 100%;
+      padding: 1.5rem 1.4rem 1.25rem; box-shadow: 0 18px 50px rgba(31,42,35,0.25);
+      border-top: 4px solid var(--red);
+    }
+    .modal.modal-safe { border-top-color: var(--accent); }
+    .modal-title { font-size: 1.02rem; font-weight: 700; color: var(--text); margin-bottom: 0.6rem; }
+    .modal-msg { font-size: 0.85rem; color: var(--muted); line-height: 1.6; margin-bottom: 1.25rem; }
+    .modal-msg strong { color: var(--text); }
+    .modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; }
+    .btn-ghost { background: #fff; color: var(--muted); border: 1px solid var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover { filter: brightness(0.93); }
+
+    /* ── レスポンシブ（スマホ） ── */
+    @media (max-width: 600px) {
+      header { padding: 3.4rem 1rem 1.5rem; }
+      .header-admin-area { top: 0.75rem; right: 0.75rem; gap: 0.4rem; }
+      .header-admin-btn {
+        padding: 0.35rem 0.8rem; font-size: 0.72rem;
+      }
+      .header-admin-status { font-size: 0.68rem; padding: 0.22rem 0.6rem; }
+      main { padding: 1.5rem 0.9rem 4rem; }
+
+      .filter-bar { gap: 0.4rem; margin-bottom: 1.5rem; }
+      .filter-chip { padding: 0.35rem 0.8rem; font-size: 0.75rem; }
+
+      .work-header { padding: 0.8rem 1rem 0.65rem; }
+      .work-info, .work-tags, .work-bottom { padding-left: 1rem; padding-right: 1rem; }
+      .work-title { font-size: 0.95rem; }
+
+      /* エントリー欄は横並び維持、ボタンは余白を詰める */
+      .entry-form .btn { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
+
+      /* 管理画面：横並びを縦に */
+      .admin-login { flex-wrap: wrap; }
+      .pass-field { flex: 1 1 100%; }
+      .pass-field input { width: 100%; }
+      .admin-login > .btn { width: 100%; }
+
+      .add-cat-row { flex-wrap: wrap; }
+      .cat-row { flex-wrap: wrap; }
+      .cat-row .a-input { flex: 1 1 100%; }
+
+      /* 管理テーブルをカード化（横スクロール回避） */
+      .admin-table, .admin-table tbody, .admin-table tr, .admin-table td {
+        display: block; width: 100%;
+      }
+      .admin-table thead { display: none; }
+      .admin-table { border: none; background: transparent; }
+      .admin-table tr {
+        background: var(--surface); border: 1px solid var(--border);
+        border-radius: var(--radius); margin-bottom: 1rem; overflow: hidden;
+      }
+      .admin-table td { border: none; border-bottom: 1px solid var(--border); padding: 0.75rem 0.9rem; }
+      .admin-table td:last-child { border-bottom: none; }
+      .admin-table td::before {
+        content: attr(data-label);
+        display: block; font-size: 0.68rem; font-weight: 700;
+        color: var(--muted); letter-spacing: 0.05em; margin-bottom: 0.4rem;
+      }
+      .admin-table td:first-child::before { content: none; }
+
+      .modal-actions { flex-direction: column-reverse; }
+      .modal-actions .btn { width: 100%; }
+    }
+
+    @media (max-width: 360px) {
+      .header-pass { font-size: 0.68rem; padding: 0.25rem 0.6rem; }
+      .entry-form { flex-wrap: wrap; }
+      .entry-form .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-admin-area">
+    <span class="header-admin-status" id="headerStatus" hidden>管理者としてログイン中</span>
+    <button class="admin-toggle header-admin-btn" onclick="toggleAdmin()">管理者ログイン</button>
+  </div>
+  <p class="header-eyebrow">Murder Mystery</p>
+  <h1>参加<span>エントリー</span></h1>
+  <p>参加したい作品に名前を入力してエントリーしてください</p>
+  <p class="header-pass">管理者パスワード：<code id="headerPass"></code></p>
+</header>
+
+<div class="admin-panel" id="adminPanel">
+  <div class="admin-panel-inner">
+    <div class="admin-login" id="adminLoginBox">
+      <div class="pass-field">
+        <input type="password" id="adminPass" placeholder="パスワード"
+               onkeydown="if(event.key==='Enter') adminLogin()" />
+        <button type="button" class="pass-toggle" id="passToggle"
+                aria-label="パスワードを表示" onclick="togglePassVisible()">表示</button>
+      </div>
+      <button class="btn btn-primary" onclick="adminLogin()">ログイン</button>
+    </div>
+    <p class="admin-err" id="adminErr"></p>
+    <div id="adminView"></div>
+  </div>
+</div>
+
+<main id="publicView">
+  <div class="filter-bar" id="filterBar" role="group" aria-label="カテゴリで絞り込み"></div>
+  <div id="works"></div>
+</main>
+
+<div class="modal-overlay" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMsg">
+  <div class="modal">
+    <h2 class="modal-title" id="confirmTitle"></h2>
+    <p class="modal-msg" id="confirmMsg"></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="confirmCancel" onclick="closeConfirm()">キャンセル</button>
+      <button class="btn btn-danger" id="confirmOk">削除する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── デフォルトデータ ──────────────────────────────────────
+const DEFAULT_CATEGORIES = ['初回の方向け', '複数回経験済み'];
+
+const WORKS = [
+  {
+    id: 'w1', title: '九頭竜館の殺人', defaultCat: '初回の方向け',
+    players: '7〜9名', time: '約120分', capacity: 9,
+    tags: ['Level★☆☆', '館', 'ホラー', 'GM不要'],
+  },
+  {
+    id: 'w2', title: '人狼村の祝祭', defaultCat: '初回の方向け',
+    players: '7〜8名', time: '約120分', capacity: 8,
+    tags: ['Level★☆☆', 'ファンタジー', 'GM不要'],
+  },
+  {
+    id: 'w3', title: '最果亭の災禍', defaultCat: '初回の方向け',
+    players: '6〜8名', time: '約180分', capacity: 8,
+    tags: ['Level★☆☆', 'ファンタジー', 'GM不要'],
+  },
+  {
+    id: 'w4', title: '何度だって青い月に火を灯した', defaultCat: '複数回経験済み',
+    players: '6〜7名', time: '約150分', capacity: 7,
+    tags: ['Level★★☆', 'マフィア', '群像劇', 'GM不要'],
+  },
+  {
+    id: 'w5', title: 'ダークユールに贖いを', defaultCat: '複数回経験済み',
+    players: '7〜9名', time: '約180分', capacity: 9,
+    tags: ['Level★★★', '吸血鬼', 'ロールプレイ', 'GM不要'],
+  },
+];
+
+const ADMIN_PASS = 'mystery'; // ← パスワードをここで変更
+
+// ── ストレージ ────────────────────────────────────────────
+const KEYS = {
+  entries:    'mm_entries',
+  categories: 'mm_categories',
+  workcats:   'mm_workcats',
+  workinfo:   'mm_workinfo',   // { id: { title, players, time, tags[], capacity } }
+  deleted:    'mm_deleted',    // 削除済み作品IDの配列
+};
+
+function lsGet(key, def) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; }
+  catch { return def; }
+}
+function lsSet(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+function getDeleted() { return lsGet(KEYS.deleted, []); }
+// 削除されていない有効な作品の配列
+function getWorks() {
+  const del = getDeleted();
+  return WORKS.filter(w => !del.includes(w.id));
+}
+
+function getCategories() { return lsGet(KEYS.categories, null) || [...DEFAULT_CATEGORIES]; }
+function getWorkCat(w)   { return lsGet(KEYS.workcats, {})[w.id] || w.defaultCat; }
+
+// 「7〜9名」などの表記から最大人数を推定（フォールバック用）
+function guessCapacity(playersText) {
+  const nums = String(playersText).match(/\d+/g);
+  if (!nums || !nums.length) return 0; // 0 = 定員なし扱い
+  return Math.max(...nums.map(Number));
+}
+
+function getInfo(w) {
+  const saved = lsGet(KEYS.workinfo, {})[w.id] || {};
+  const players = saved.players ?? w.players;
+  return {
+    title:    saved.title    ?? w.title,
+    players:  players,
+    time:     saved.time     ?? w.time,
+    tags:     saved.tags     ?? w.tags,
+    capacity: (saved.capacity ?? w.capacity ?? guessCapacity(players)) || 0,
+  };
+}
+
+function saveInfo(id, patch) {
+  const all = lsGet(KEYS.workinfo, {});
+  const w   = WORKS.find(x => x.id === id);
+  all[id]   = { ...getInfo(w), ...patch };
+  lsSet(KEYS.workinfo, all);
+}
+
+// ── SVG アイコン ──────────────────────────────────────────
+const ICON = {
+  person: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+  clock:  `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+};
+
+// ── メイン描画 ────────────────────────────────────────────
+let activeFilter = 'all'; // 'all' または カテゴリ名
+
+function getAllCats() {
+  // カテゴリ定義 + 未分類作品の「その他」
+  const cats = getCategories();
+  const hasUngrouped = getWorks().some(w => !cats.includes(getWorkCat(w)));
+  return hasUngrouped ? [...cats, 'その他'] : [...cats];
+}
+
+function setFilter(cat) {
+  activeFilter = cat;
+  render();
+}
+
+function renderFilterBar() {
+  const cats = getAllCats();
+  const works = getWorks();
+  const total = works.length;
+  const countOf = c => (c === 'その他')
+    ? works.filter(w => !getCategories().includes(getWorkCat(w))).length
+    : works.filter(w => getWorkCat(w) === c).length;
+
+  const chips = [
+    `<button class="filter-chip ${activeFilter === 'all' ? 'active' : ''}" aria-pressed="${activeFilter === 'all'}" onclick="setFilter('all')">すべて<span class="filter-count">${total}</span></button>`,
+    ...cats.map(c =>
+      `<button class="filter-chip ${activeFilter === c ? 'active' : ''}" aria-pressed="${activeFilter === c}" onclick="setFilter('${esc(c)}')">${esc(c)}<span class="filter-count">${countOf(c)}</span></button>`
+    ),
+  ].join('');
+
+  document.getElementById('filterBar').innerHTML = chips;
+}
+
+function render() {
+  const entries = lsGet(KEYS.entries, {});
+  const cats    = getCategories();
+  const works   = getWorks();
+
+  // フィルターで選択中のカテゴリが消えた場合はリセット
+  if (activeFilter !== 'all' && !getAllCats().includes(activeFilter)) {
+    activeFilter = 'all';
+  }
+  renderFilterBar();
+
+  let groups = cats.map(cat => ({
+    cat,
+    works: works.filter(w => getWorkCat(w) === cat),
+  })).filter(g => g.works.length > 0);
+
+  const ungrouped = works.filter(w => !cats.includes(getWorkCat(w)));
+  if (ungrouped.length) groups.push({ cat: 'その他', works: ungrouped });
+
+  // フィルター適用
+  if (activeFilter !== 'all') {
+    groups = groups.filter(g => g.cat === activeFilter);
+  }
+
+  document.getElementById('works').innerHTML = groups.length
+    ? groups.map(g => `
+    <div class="category-group">
+      <div class="category-heading">
+        <span class="category-heading-label">${esc(g.cat)}</span>
+        <span class="category-heading-line"></span>
+      </div>
+      <div class="works">
+        ${g.works.map(w => renderWork(w, entries[w.id] || [])).join('')}
+      </div>
+    </div>
+  `).join('')
+    : '<p class="no-result">該当する作品がありません</p>';
+}
+
+function renderWork(w, entries) {
+  const info = getInfo(w);
+  const cap  = info.capacity; // 0 = 定員なし
+  const isFull = cap > 0 && entries.length >= cap;
+
+  const chips = entries.length
+    ? entries.map((n, i) =>
+        `<span class="entry-chip">${esc(n)}<button class="chip-remove" title="エントリーを取り消す" aria-label="${esc(n)} のエントリーを取り消す" onclick="removeOwnEntry('${w.id}',${i})">×</button></span>`
+      ).join('')
+    : '<span class="entry-empty">まだ誰もエントリーしていません</span>';
+
+  const tagHtml = info.tags.length
+    ? info.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')
+    : '';
+
+  // バッジ表示（満員なら「満員」、定員ありなら「n/定員名」、なしなら「n名エントリー中」）
+  let badge, badgeClass = 'work-badge';
+  if (isFull) { badge = '満員'; badgeClass += ' work-badge-full'; }
+  else if (cap > 0) { badge = `${entries.length}/${cap}名`; }
+  else { badge = `${entries.length}名エントリー中`; }
+
+  const formHtml = isFull
+    ? `<p class="full-notice">定員に達したため、現在エントリーを受け付けていません。</p>`
+    : `<div class="entry-form">
+          <input class="entry-input" id="input-${w.id}" placeholder="名前を入力" maxlength="20"
+                 aria-label="${esc(info.title)} に参加する名前を入力"
+                 onkeydown="if(event.key==='Enter') doEntry('${w.id}')" />
+          <button class="btn btn-primary" onclick="doEntry('${w.id}')">エントリー</button>
+        </div>`;
+
+  return `
+    <div class="work">
+      <div class="work-header">
+        <span class="work-title">${esc(info.title)}</span>
+        <span class="${badgeClass}">${badge}</span>
+      </div>
+      <div class="work-info">
+        <span class="info-item"><span class="sr-only">参加人数</span>${ICON.person} ${esc(info.players)}</span>
+        <span class="info-sep" aria-hidden="true">·</span>
+        <span class="info-item"><span class="sr-only">所要時間</span>${ICON.clock} ${esc(info.time)}</span>
+      </div>
+      ${tagHtml ? `<div class="work-tags">${tagHtml}</div>` : ''}
+      <div class="work-bottom">
+        ${entries.length ? '<div class="entries-label">エントリー済み</div>' : ''}
+        <div class="entry-list">${chips}</div>
+        ${formHtml}
+        <p class="msg" id="msg-${w.id}" role="status" aria-live="polite"></p>
+      </div>
+    </div>`;
+}
+
+// ── エントリー ────────────────────────────────────────────
+function doEntry(id) {
+  const input   = document.getElementById(`input-${id}`);
+  const name    = input.value.trim();
+  const msgEl   = document.getElementById(`msg-${id}`);
+  if (!name) { showMsg(msgEl, '名前を入力してください', 'err'); return; }
+  const data    = lsGet(KEYS.entries, {});
+  const list    = data[id] || [];
+  if (list.includes(name)) { showMsg(msgEl, `「${name}」はすでにエントリー済みです`, 'err'); return; }
+
+  // 定員チェック
+  const w   = WORKS.find(x => x.id === id);
+  const cap = w ? getInfo(w).capacity : 0;
+  if (cap > 0 && list.length >= cap) {
+    showMsg(msgEl, '定員に達したためエントリーできません', 'err');
+    return;
+  }
+
+  const title = w ? getInfo(w).title : '';
+  openConfirm({
+    title: 'エントリーの確認',
+    message: `<strong>${esc(title)}</strong> に<br><strong>${esc(name)}</strong> としてエントリーします。よろしいですか？`,
+    okLabel: 'エントリーする',
+    danger: false,
+    onConfirm: () => commitEntry(id, name),
+  });
+}
+
+function commitEntry(id, name) {
+  const data = lsGet(KEYS.entries, {});
+  const list = data[id] || [];
+  // 念のため再チェック（モーダル表示中に状況が変わった場合に備える）
+  if (list.includes(name)) return;
+  const w   = WORKS.find(x => x.id === id);
+  const cap = w ? getInfo(w).capacity : 0;
+  if (cap > 0 && list.length >= cap) return;
+
+  list.push(name);
+  data[id] = list;
+  lsSet(KEYS.entries, data);
+  const input = document.getElementById(`input-${id}`);
+  if (input) input.value = '';
+  render();
+  if (document.getElementById('adminView').innerHTML) renderAdmin();
+  const msgEl = document.getElementById(`msg-${id}`);
+  showMsg(msgEl, `「${name}」でエントリーしました！`, 'ok');
+}
+
+// エントリー1件の削除（参加者の取り消し・管理者の削除で共用）
+// label: モーダルの文言を「取り消し」/「削除」で切り替え
+function confirmRemoveEntry(id, index, label = '取り消し') {
+  const list = lsGet(KEYS.entries, {})[id] || [];
+  const name = list[index];
+  if (name === undefined) return;
+  const w = WORKS.find(x => x.id === id);
+  const title = w ? getInfo(w).title : '';
+  openConfirm({
+    title: `エントリーの${label}`,
+    message: `<strong>${esc(title)}</strong> の<br><strong>${esc(name)}</strong> のエントリーを${label}します。よろしいですか？`,
+    okLabel: `${label}する`,
+    danger: true,
+    onConfirm: () => {
+      const data = lsGet(KEYS.entries, {});
+      const cur  = data[id] || [];
+      // モーダル表示中の変化に備え、その位置が同じ名前かを確認してから削除
+      if (cur[index] !== name) {
+        const pos = cur.indexOf(name);
+        if (pos === -1) return;
+        cur.splice(pos, 1);
+      } else {
+        cur.splice(index, 1);
+      }
+      data[id] = cur;
+      lsSet(KEYS.entries, data);
+      render();
+      if (document.getElementById('adminView').innerHTML) renderAdmin();
+    },
+  });
+}
+
+// 参加者自身による取り消し（チップの×）
+function removeOwnEntry(id, index) { confirmRemoveEntry(id, index, '取り消し'); }
+// 管理者による削除
+function removeEntry(id, index)    { confirmRemoveEntry(id, index, '削除'); }
+
+function showMsg(el, text, type) {
+  if (!el) return;
+  el.textContent = text;
+  el.className   = `msg msg-${type}`;
+  setTimeout(() => { el.textContent = ''; el.className = 'msg'; }, 3000);
+}
+
+// ── 管理者 ────────────────────────────────────────────────
+let isAdmin = false;
+
+function toggleAdmin() {
+  const panel = document.getElementById('adminPanel');
+  if (isAdmin) {
+    // ログイン済みならヘッダーボタンはログアウト
+    adminLogout();
+    return;
+  }
+  // 未ログインはログインフォームの開閉をトグル
+  panel.classList.toggle('open');
+}
+
+function togglePassVisible() {
+  const input = document.getElementById('adminPass');
+  const btn   = document.getElementById('passToggle');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '隠す';
+    btn.setAttribute('aria-label', 'パスワードを隠す');
+  } else {
+    input.type = 'password';
+    btn.textContent = '表示';
+    btn.setAttribute('aria-label', 'パスワードを表示');
+  }
+}
+
+function adminLogin() {
+  if (document.getElementById('adminPass').value !== ADMIN_PASS) {
+    document.getElementById('adminErr').textContent = 'パスワードが違います';
+    return;
+  }
+  document.getElementById('adminErr').textContent = '';
+  isAdmin = true;
+  showAdminUI();
+}
+
+function adminLogout() {
+  isAdmin = false;
+  document.getElementById('adminPass').value = '';
+  document.getElementById('adminView').innerHTML = '';
+  document.getElementById('adminLoginBox').style.display = '';
+  document.getElementById('publicView').style.display = '';
+  document.getElementById('adminPanel').classList.remove('open');
+  // ヘッダーの表記・ステータスを戻す
+  document.querySelector('.header-admin-btn').textContent = '管理者ログイン';
+  document.getElementById('headerStatus').hidden = true;
+}
+
+// ログイン済みのUI状態へ（公開ビューを隠し、管理画面のみ表示）
+function showAdminUI() {
+  document.getElementById('adminLoginBox').style.display = 'none';
+  document.getElementById('publicView').style.display = 'none';
+  document.querySelector('.header-admin-btn').textContent = '管理者ログアウト';
+  document.getElementById('headerStatus').hidden = false;
+  renderAdmin();
+}
+
+function renderAdmin() {
+  if (!isAdmin) { document.getElementById('adminView').innerHTML = ''; return; }
+  const entries = lsGet(KEYS.entries, {});
+  const cats    = getCategories();
+
+  const catRows = cats.map((c, i) => `
+    <div class="cat-row">
+      <input class="a-input fill" id="cat-${i}" value="${esc(c)}" maxlength="30" />
+      <button class="btn-xs btn-save" onclick="saveCat(${i})">保存</button>
+      <button class="btn-xs btn-del"  onclick="deleteCat(${i})">削除</button>
+    </div>`).join('');
+
+  const rows = getWorks().map(w => {
+    const info    = getInfo(w);
+    const list    = entries[w.id] || [];
+    const catOpts = cats.map(c =>
+      `<option value="${esc(c)}" ${getWorkCat(w)===c?'selected':''}>${esc(c)}</option>`
+    ).join('');
+    const names = list.length
+      ? list.map((n, i) =>
+          `<div class="admin-name-row">${esc(n)}
+             <button class="btn-xs btn-del" onclick="removeEntry('${w.id}',${i})">削除</button>
+           </div>`).join('')
+      : '<span style="color:#7a8475">なし</span>';
+
+    return `<tr>
+      <td>
+        <div class="field-row">
+          <span class="field-label">作品名</span>
+          <input class="a-input fill" id="i-title-${w.id}"   value="${esc(info.title)}"   maxlength="40" />
+        </div>
+        <div class="field-row">
+          <span class="field-label">人数</span>
+          <input class="a-input fill" id="i-players-${w.id}" value="${esc(info.players)}" maxlength="20" />
+        </div>
+        <div class="field-row">
+          <span class="field-label">定員</span>
+          <input class="a-input" id="i-capacity-${w.id}" type="number" min="0" max="99"
+                 value="${info.capacity}" style="width:5rem" />
+          <span class="field-hint">名（0で無制限）</span>
+        </div>
+        <div class="field-row">
+          <span class="field-label">時間</span>
+          <input class="a-input fill" id="i-time-${w.id}"    value="${esc(info.time)}"    maxlength="20" />
+        </div>
+        <div class="field-row">
+          <span class="field-label">タグ</span>
+          <input class="a-input fill" id="i-tags-${w.id}"    value="${esc(info.tags.join(','))}" maxlength="100"
+                 placeholder="カンマ区切りで入力" />
+        </div>
+        <div class="field-row">
+          <span class="field-label">カテゴリ</span>
+          <select class="a-select" id="i-cat-${w.id}" onchange="saveWorkCat('${w.id}')">
+            ${catOpts}
+          </select>
+        </div>
+        <div class="field-row" style="margin-top:0.2rem">
+          <button class="btn-xs btn-save"  onclick="saveWorkInfo('${w.id}')">保存</button>
+          <button class="btn-xs btn-muted" onclick="resetWorkInfo('${w.id}')">元に戻す</button>
+          <button class="btn-xs btn-del"   onclick="askDeleteWork('${w.id}')">作品を削除</button>
+        </div>
+      </td>
+      <td data-label="エントリー人数"><span class="count-badge">${list.length}名</span></td>
+      <td data-label="エントリー名">${names}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('adminView').innerHTML = `
+    <div class="admin-section">
+      <p class="admin-section-title">カテゴリ管理</p>
+      <div class="cat-list">${catRows}</div>
+      <div class="add-cat-row">
+        <input class="a-input fill" id="newCatInput" placeholder="新しいカテゴリ名" maxlength="30"
+               onkeydown="if(event.key==='Enter') addCat()" />
+        <button class="btn-xs btn-save" onclick="addCat()">追加</button>
+      </div>
+    </div>
+    <div class="admin-section">
+      <p class="admin-section-title">作品・エントリー管理</p>
+      <table class="admin-table">
+        <thead><tr><th>作品情報</th><th>人数</th><th>エントリー名</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <button class="reset-btn" onclick="clearAll()">全エントリーをリセット</button>
+    </div>`;
+}
+
+// ── カテゴリ操作 ──────────────────────────────────────────
+function addCat() {
+  const input = document.getElementById('newCatInput');
+  const name  = input.value.trim();
+  if (!name) return;
+  const cats = getCategories();
+  if (cats.includes(name)) return;
+  cats.push(name);
+  lsSet(KEYS.categories, cats);
+  input.value = '';
+  render(); renderAdmin();
+}
+
+function saveCat(i) {
+  const val  = document.getElementById(`cat-${i}`).value.trim();
+  if (!val) return;
+  const cats = getCategories();
+  const old  = cats[i];
+  cats[i]    = val;
+  lsSet(KEYS.categories, cats);
+  const wc = lsGet(KEYS.workcats, {});
+  WORKS.forEach(w => { if (wc[w.id] === old) wc[w.id] = val; });
+  lsSet(KEYS.workcats, wc);
+  render(); renderAdmin();
+}
+
+function deleteCat(i) {
+  const cats = getCategories();
+  const name = cats[i];
+  if (name === undefined) return;
+  openConfirm({
+    title: 'カテゴリを削除',
+    message: `<strong>${esc(name)}</strong> を削除します。<br>このカテゴリの作品は「その他」に移動します。よろしいですか？`,
+    okLabel: '削除する',
+    danger: true,
+    onConfirm: () => {
+      const cur = getCategories();
+      cur.splice(i, 1);
+      lsSet(KEYS.categories, cur);
+      render(); renderAdmin();
+    },
+  });
+}
+
+// ── 作品情報操作 ──────────────────────────────────────────
+function saveWorkInfo(id) {
+  const title   = document.getElementById(`i-title-${id}`).value.trim();
+  const players = document.getElementById(`i-players-${id}`).value.trim();
+  const time    = document.getElementById(`i-time-${id}`).value.trim();
+  const tagsRaw = document.getElementById(`i-tags-${id}`).value;
+  const tags    = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
+  const capRaw  = document.getElementById(`i-capacity-${id}`).value;
+  const capacity = Math.max(0, parseInt(capRaw, 10) || 0);
+  if (!title) return;
+
+  const commit = () => {
+    saveInfo(id, { title, players, time, tags, capacity });
+    render(); renderAdmin();
+  };
+
+  // 既存エントリー数より小さい定員は警告
+  const current = (lsGet(KEYS.entries, {})[id] || []).length;
+  if (capacity > 0 && capacity < current) {
+    openConfirm({
+      title: '定員の確認',
+      message: `現在のエントリー数（<strong>${current}名</strong>）より定員（<strong>${capacity}名</strong>）が少なくなっています。<br>超過している参加者は手動で取り消す必要があります。保存しますか？`,
+      okLabel: '保存する',
+      danger: false,
+      onConfirm: commit,
+    });
+    return;
+  }
+  commit();
+}
+
+function resetWorkInfo(id) {
+  const all = lsGet(KEYS.workinfo, {});
+  delete all[id];
+  lsSet(KEYS.workinfo, all);
+  render(); renderAdmin();
+}
+
+function saveWorkCat(id) {
+  const val = document.getElementById(`i-cat-${id}`).value;
+  const wc  = lsGet(KEYS.workcats, {}); wc[id] = val;
+  lsSet(KEYS.workcats, wc);
+  render(); renderAdmin();
+}
+
+// ── 確認モーダル ──────────────────────────────────────────
+let pendingAction = null;
+
+function openConfirm({ title, message, okLabel, onConfirm, danger = true }) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').innerHTML = message;
+  const okBtn = document.getElementById('confirmOk');
+  okBtn.textContent = okLabel || '削除する';
+  okBtn.className = danger ? 'btn btn-danger' : 'btn btn-primary';
+  document.querySelector('#confirmModal .modal').classList.toggle('modal-safe', !danger);
+  pendingAction = onConfirm;
+  document.getElementById('confirmModal').classList.add('open');
+  document.getElementById('confirmCancel').focus();
+}
+
+function closeConfirm() {
+  document.getElementById('confirmModal').classList.remove('open');
+  pendingAction = null;
+}
+
+// OKボタン・オーバーレイ・ESCのハンドラ
+document.getElementById('confirmOk').addEventListener('click', () => {
+  const action = pendingAction;
+  closeConfirm();
+  if (action) action();
+});
+document.getElementById('confirmModal').addEventListener('click', (e) => {
+  if (e.target.id === 'confirmModal') closeConfirm();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('confirmModal').classList.contains('open')) {
+    closeConfirm();
+  }
+});
+
+// ── 全エントリーリセット（モーダル確認） ─────────────────
+function clearAll() {
+  openConfirm({
+    title: '全エントリーをリセット',
+    message: 'すべての作品のエントリーを削除します。<br>この操作は取り消せません。よろしいですか？',
+    okLabel: 'リセットする',
+    onConfirm: () => {
+      lsSet(KEYS.entries, {});
+      render(); renderAdmin();
+    },
+  });
+}
+
+// ── 作品削除（モーダル確認） ─────────────────────────────
+function askDeleteWork(id) {
+  const w = WORKS.find(x => x.id === id);
+  if (!w) return;
+  const title = getInfo(w).title;
+  const count = (lsGet(KEYS.entries, {})[id] || []).length;
+  const extra = count > 0
+    ? `<br>エントリー済みの <strong>${count}名</strong> の情報も一緒に削除されます。`
+    : '';
+  openConfirm({
+    title: '作品を削除',
+    message: `<strong>${esc(title)}</strong> を一覧から削除します。${extra}<br>この操作は取り消せません。よろしいですか？`,
+    okLabel: '削除する',
+    onConfirm: () => deleteWork(id),
+  });
+}
+
+function deleteWork(id) {
+  // 削除済みリストに追加
+  const del = getDeleted();
+  if (!del.includes(id)) { del.push(id); lsSet(KEYS.deleted, del); }
+  // 関連データも掃除
+  const entries = lsGet(KEYS.entries, {});   delete entries[id];   lsSet(KEYS.entries, entries);
+  const wc      = lsGet(KEYS.workcats, {});  delete wc[id];        lsSet(KEYS.workcats, wc);
+  const wi      = lsGet(KEYS.workinfo, {});  delete wi[id];        lsSet(KEYS.workinfo, wi);
+  render(); renderAdmin();
+}
+
+// ── utils ─────────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── 初期化 ────────────────────────────────────────────────
+document.getElementById('headerPass').textContent = ADMIN_PASS;
+render();
+</script>
+</body>
+</html>
