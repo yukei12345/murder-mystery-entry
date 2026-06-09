@@ -582,7 +582,8 @@ rootRef.on('value', (snapshot) => {
   fbState.workinfo   = data.workinfo    || {};
   fbState.deleted     = data.deleted     || [];
   fbState.customWorks = data.customWorks || {};
-  fbState.workOrder   = data.workOrder   || [];
+  const wo = data.workOrder;
+  fbState.workOrder = wo ? (Array.isArray(wo) ? wo : Object.values(wo)) : [];
   fbReady = true;
   setSyncOnline(true);
   render();
