@@ -449,6 +449,52 @@
     /* ── Loading ── */
     .loading { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 0.85rem; }
 
+    /* ── Admin card list ── */
+    .admin-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .admin-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .admin-card:hover { border-color: var(--border-strong); box-shadow: 0 2px 8px rgba(31,42,35,0.06); }
+    .admin-card.dragging { opacity: 0.4; }
+    .admin-card.drag-over { border-color: var(--accent); border-style: dashed; box-shadow: 0 0 0 2px var(--accent-soft); }
+
+    .admin-card-header {
+      display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+      padding: 0.7rem 0.9rem; background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+    .admin-card-title { font-weight: 700; font-size: 0.92rem; flex: 1; min-width: 0; }
+    .admin-card-actions { display: flex; gap: 0.35rem; margin-left: auto; flex-shrink: 0; }
+
+    .admin-card-body { padding: 0.6rem 0.9rem 0.7rem; display: flex; flex-direction: column; gap: 0.4rem; }
+    .admin-card-info { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.6rem; font-size: 0.75rem; color: var(--muted); }
+    .admin-card-info .info-sep { color: var(--border-strong); }
+    .admin-card-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .admin-card-entries-row { display: flex; align-items: baseline; gap: 0.5rem; }
+    .admin-card-entries-label { font-size: 0.68rem; color: var(--muted); font-weight: 700; letter-spacing: 0.04em; white-space: nowrap; }
+    .admin-card-entry-names { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+
+    /* ── Edit modal ── */
+    .edit-modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(31,42,35,0.5);
+      align-items: flex-start; justify-content: center;
+      padding: 2rem 1rem 3rem; overflow-y: auto;
+    }
+    .edit-modal-overlay.open { display: flex; }
+    .edit-modal-dialog {
+      background: #fff; border-radius: 14px; max-width: 500px; width: 100%;
+      padding: 1.5rem 1.5rem 1.25rem;
+      box-shadow: 0 18px 50px rgba(31,42,35,0.25);
+      border-top: 4px solid var(--accent);
+      margin: auto;
+    }
+    .edit-modal-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 1rem; }
+    .edit-modal-fields { display: flex; flex-direction: column; gap: 0.45rem; margin-bottom: 1.25rem; }
+    .edit-modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; }
+
     /* ── レスポンシブ ── */
     @media (max-width: 600px) {
       header { padding: 3.4rem 1rem 1.5rem; }
@@ -469,23 +515,12 @@
       .add-cat-row { flex-wrap: wrap; }
       .cat-row { flex-wrap: wrap; }
       .cat-row .a-input { flex: 1 1 100%; }
-      .admin-table, .admin-table tbody, .admin-table tr, .admin-table td { display: block; width: 100%; }
-      .admin-table thead { display: none; }
-      .admin-table { border: none; background: transparent; }
-      .admin-table tr {
-        background: var(--surface); border: 1px solid var(--border);
-        border-radius: var(--radius); margin-bottom: 1rem; overflow: hidden;
-      }
-      .admin-table td { border: none; border-bottom: 1px solid var(--border); padding: 0.75rem 0.9rem; }
-      .admin-table td:last-child { border-bottom: none; }
-      .admin-table td::before {
-        content: attr(data-label);
-        display: block; font-size: 0.68rem; font-weight: 700;
-        color: var(--muted); letter-spacing: 0.05em; margin-bottom: 0.4rem;
-      }
-      .admin-table td:first-child::before { content: none; }
+      .admin-card-header { gap: 0.4rem; }
+      .admin-card-actions { flex-wrap: wrap; }
       .modal-actions { flex-direction: column-reverse; }
       .modal-actions .btn { width: 100%; }
+      .edit-modal-actions { flex-direction: column-reverse; }
+      .edit-modal-actions .btn { width: 100%; }
     }
 
     @media (max-width: 360px) {
@@ -544,6 +579,28 @@
     <div class="modal-actions">
       <button class="btn btn-ghost" id="confirmCancel" onclick="closeConfirm()">キャンセル</button>
       <button class="btn btn-danger" id="confirmOk">削除する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 編集モーダル -->
+<div class="edit-modal-overlay" id="editModalOverlay" role="dialog" aria-modal="true" aria-labelledby="editModalHeading">
+  <div class="edit-modal-dialog">
+    <h2 class="edit-modal-title" id="editModalHeading"></h2>
+    <div class="edit-modal-fields">
+      <div class="field-row"><span class="field-label">作品名</span><input class="a-input fill" id="editModal-title"    maxlength="40" /></div>
+      <div class="field-row"><span class="field-label">人数</span>  <input class="a-input fill" id="editModal-players"  maxlength="20" placeholder="例：6〜8名" /></div>
+      <div class="field-row"><span class="field-label">定員</span>  <input class="a-input" id="editModal-capacity" type="number" min="0" max="99" style="width:5rem" /><span class="field-hint">名（0で無制限）</span></div>
+      <div class="field-row"><span class="field-label">時間</span>  <input class="a-input fill" id="editModal-time"     maxlength="20" placeholder="例：約120分" /></div>
+      <div class="field-row"><span class="field-label">作者</span>  <input class="a-input fill" id="editModal-author"   maxlength="40" /></div>
+      <div class="field-row"><span class="field-label">金額</span>  <input class="a-input fill" id="editModal-price"    maxlength="20" placeholder="例：2,000円" /></div>
+      <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="editModal-tags"     maxlength="100" placeholder="カンマ区切りで入力" /></div>
+      <div class="field-row"><span class="field-label">カテゴリ</span><select class="a-select" id="editModal-cat"></select></div>
+    </div>
+    <p class="msg" id="editModal-msg" role="status" aria-live="polite"></p>
+    <div class="edit-modal-actions">
+      <button class="btn btn-ghost" onclick="closeEditModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveEditModal()">保存する</button>
     </div>
   </div>
 </div>
@@ -945,50 +1002,63 @@ function renderAdmin() {
       <button class="btn-xs btn-del"  onclick="deleteCat(${i})">削除</button>
     </div>`).join('');
 
-  const rows = getWorks().map(w => {
-    const info    = getInfo(w);
-    const list    = entries[w.id] || [];
-    const catOpts = cats.map(c =>
-      `<option value="${esc(c)}" ${getWorkCat(w)===c?'selected':''}>${esc(c)}</option>`
-    ).join('');
-    const names = list.length
-      ? list.map((n, i) =>
-          `<div class="admin-name-row">${esc(n)}<button class="btn-xs btn-del" onclick="removeEntry('${w.id}',${i})">削除</button></div>`
-        ).join('')
-      : '<span style="color:#7a8475">なし</span>';
+  const DRAG_HANDLE_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>`;
 
-    return `<tr draggable="false" data-id="${w.id}"
+  const cards = getWorks().map(w => {
+    const info = getInfo(w);
+    const list = entries[w.id] || [];
+    const cap  = info.capacity;
+    const isFull = cap > 0 && list.length >= cap;
+
+    let countBadgeClass = 'work-badge';
+    let countLabel;
+    if (isFull)       { countBadgeClass += ' work-badge-full'; countLabel = `満員 ${list.length}/${cap}名`; }
+    else if (cap > 0) { countLabel = `${list.length} / ${cap}名`; }
+    else              { countLabel = `${list.length}名エントリー中`; }
+
+    const tagHtml = info.tags.length
+      ? info.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')
+      : '';
+
+    const entryHtml = list.length
+      ? list.map((n, i) =>
+          `<span class="entry-chip">${esc(n)}<button class="chip-remove" title="${esc(n)}を削除" aria-label="${esc(n)}を削除" onclick="removeEntry('${w.id}',${i})">×</button></span>`
+        ).join('')
+      : `<span style="color:var(--muted);font-size:0.73rem">エントリーなし</span>`;
+
+    return `<div class="admin-card" data-id="${w.id}"
+         draggable="false"
          ondragstart="onAdminDragStart(event,'${w.id}')"
          ondragover="onAdminDragOver(event)"
          ondragleave="onAdminDragLeave(event)"
          ondrop="onAdminDrop(event,'${w.id}')"
          ondragend="onAdminDragEnd(event)">
-      <td>
-        <div class="field-row" style="margin-bottom:0.6rem">
-          <span class="admin-drag-handle" title="ドラッグして並び替え" aria-hidden="true"
-                onmousedown="this.closest('tr').draggable=true"
-                onmouseup="this.closest('tr').draggable=false">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>
-          </span>
-          <span style="font-size:0.7rem;color:var(--muted)">ドラッグで並び替え</span>
+      <div class="admin-card-header">
+        <span class="admin-drag-handle" title="ドラッグして並び替え" aria-hidden="true"
+              onmousedown="this.closest('.admin-card').draggable=true"
+              onmouseup="this.closest('.admin-card').draggable=false">${DRAG_HANDLE_SVG}</span>
+        <span class="admin-card-title">${esc(info.title)}</span>
+        <span class="work-badge" style="flex-shrink:0">${esc(getWorkCat(w))}</span>
+        <span class="${countBadgeClass}" style="flex-shrink:0">${countLabel}</span>
+        <div class="admin-card-actions">
+          <button class="btn-xs btn-save" onclick="openEditModal('${w.id}')">✏ 編集</button>
+          <button class="btn-xs btn-del"  onclick="askDeleteWork('${w.id}')">削除</button>
         </div>
-        <div class="field-row"><span class="field-label">作品名</span><input class="a-input fill" id="i-title-${w.id}"    value="${esc(info.title)}"           maxlength="40"  oninput="markDirty('${w.id}')" /></div>
-        <div class="field-row"><span class="field-label">人数</span>  <input class="a-input fill" id="i-players-${w.id}"  value="${esc(info.players)}"         maxlength="20"  oninput="markDirty('${w.id}')" /></div>
-        <div class="field-row"><span class="field-label">定員</span>  <input class="a-input" id="i-capacity-${w.id}" type="number" min="0" max="99" value="${info.capacity}" style="width:5rem" oninput="markDirty('${w.id}')" /><span class="field-hint">名（0で無制限）</span></div>
-        <div class="field-row"><span class="field-label">時間</span>  <input class="a-input fill" id="i-time-${w.id}"     value="${esc(info.time)}"            maxlength="20"  oninput="markDirty('${w.id}')" /></div>
-        <div class="field-row"><span class="field-label">作者</span>  <input class="a-input fill" id="i-author-${w.id}"   value="${esc(info.author)}"          maxlength="40"  oninput="markDirty('${w.id}')" /></div>
-        <div class="field-row"><span class="field-label">金額</span>  <input class="a-input fill" id="i-price-${w.id}"    value="${esc(info.price)}"           maxlength="20"  oninput="markDirty('${w.id}')" placeholder="例：2,000円" /></div>
-        <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="i-tags-${w.id}"     value="${esc(info.tags.join(','))}"  maxlength="100" oninput="markDirty('${w.id}')" placeholder="カンマ区切りで入力" /></div>
-        <div class="field-row"><span class="field-label">カテゴリ</span><select class="a-select" id="i-cat-${w.id}" onchange="saveWorkCat('${w.id}')">${catOpts}</select></div>
-        <div class="field-row" style="margin-top:0.2rem">
-          <button class="btn-xs btn-save"  data-save-btn="${w.id}" onclick="saveWorkInfo('${w.id}')">保存</button>
-          <button class="btn-xs btn-muted" onclick="resetWorkInfo('${w.id}')">元に戻す</button>
-          <button class="btn-xs btn-del"   onclick="askDeleteWork('${w.id}')">作品を削除</button>
+      </div>
+      <div class="admin-card-body">
+        <div class="admin-card-info">
+          ${ICON.person} ${esc(info.players)}
+          ${info.time   ? `<span class="info-sep">·</span>${ICON.clock}  ${esc(info.time)}`   : ''}
+          ${info.author ? `<span class="info-sep">·</span>${ICON.author} ${esc(info.author)}` : ''}
+          ${info.price  ? `<span class="info-sep">·</span>${ICON.price}  ${esc(info.price)}`  : ''}
         </div>
-      </td>
-      <td data-label="エントリー人数"><span class="count-badge">${list.length}名</span></td>
-      <td data-label="エントリー名">${names}</td>
-    </tr>`;
+        ${tagHtml ? `<div class="admin-card-tags">${tagHtml}</div>` : ''}
+        <div class="admin-card-entries-row">
+          <span class="admin-card-entries-label">エントリー</span>
+          <div class="admin-card-entry-names">${entryHtml}</div>
+        </div>
+      </div>
+    </div>`;
   }).join('');
 
   document.getElementById('adminView').innerHTML = `
@@ -1022,10 +1092,7 @@ function renderAdmin() {
     </div>
     <div class="admin-section">
       <p class="admin-section-title">作品・エントリー管理</p>
-      <table class="admin-table">
-        <thead><tr><th>作品情報</th><th>人数</th><th>エントリー名</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
+      <div class="admin-list">${cards}</div>
       <button class="reset-btn" onclick="clearAll()">全エントリーをリセット</button>
     </div>`;
 }
@@ -1066,19 +1133,78 @@ function deleteCat(i) {
   });
 }
 
-// ── 管理画面ダーティステート ───────────────────────────────
-function markDirty(id) {
-  const btn = document.querySelector(`.btn-save[data-save-btn="${id}"]`);
-  if (btn) { btn.classList.add('dirty'); btn.textContent = '● 未保存'; }
+// ── 編集モーダル ───────────────────────────────────────────
+let editModalWorkId = null;
+
+function openEditModal(id) {
+  const w = getWorks().find(x => x.id === id);
+  if (!w) return;
+  const info = getInfo(w);
+  editModalWorkId = id;
+
+  const catOpts = getCategories().map(c =>
+    `<option value="${esc(c)}" ${getWorkCat(w) === c ? 'selected' : ''}>${esc(c)}</option>`
+  ).join('');
+
+  document.getElementById('editModalHeading').textContent = `「${info.title}」を編集`;
+  document.getElementById('editModal-title').value    = info.title;
+  document.getElementById('editModal-players').value  = info.players;
+  document.getElementById('editModal-capacity').value = info.capacity;
+  document.getElementById('editModal-time').value     = info.time;
+  document.getElementById('editModal-author').value   = info.author;
+  document.getElementById('editModal-price').value    = info.price;
+  document.getElementById('editModal-tags').value     = info.tags.join(',');
+  document.getElementById('editModal-cat').innerHTML  = catOpts;
+  document.getElementById('editModal-msg').textContent = '';
+  document.getElementById('editModalOverlay').classList.add('open');
+  document.getElementById('editModal-title').focus();
 }
 
-function clearDirty(id) {
-  const btn = document.querySelector(`.btn-save[data-save-btn="${id}"]`);
-  if (!btn) return;
-  btn.classList.remove('dirty');
-  btn.textContent = '✓ 保存済み';
-  setTimeout(() => { if (btn) btn.textContent = '保存'; }, 2000);
+function closeEditModal() {
+  document.getElementById('editModalOverlay').classList.remove('open');
+  editModalWorkId = null;
 }
+
+function saveEditModal() {
+  const id = editModalWorkId;
+  if (!id) return;
+  const title    = document.getElementById('editModal-title').value.trim();
+  const players  = document.getElementById('editModal-players').value.trim();
+  const capacity = Math.max(0, parseInt(document.getElementById('editModal-capacity').value, 10) || 0);
+  const time     = document.getElementById('editModal-time').value.trim();
+  const author   = document.getElementById('editModal-author').value.trim();
+  const price    = document.getElementById('editModal-price').value.trim();
+  const tags     = document.getElementById('editModal-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const cat      = document.getElementById('editModal-cat').value;
+  const msgEl    = document.getElementById('editModal-msg');
+
+  if (!title) { showMsg(msgEl, '作品名は必須です', 'err'); return; }
+
+  const commit = () => {
+    saveInfo(id, { title, players, time, author, price, tags, capacity });
+    fbSet(`workcats/${id}`, cat);
+    closeEditModal();
+  };
+
+  const current = (fbState.entries[id] || []).length;
+  if (capacity > 0 && capacity < current) {
+    openConfirm({
+      title: '定員の確認',
+      message: `現在のエントリー数（<strong>${current}名</strong>）より定員（<strong>${capacity}名</strong>）が少なくなっています。<br>超過している参加者は手動で取り消す必要があります。保存しますか？`,
+      okLabel: '保存する', danger: false, onConfirm: commit,
+    });
+    return;
+  }
+  commit();
+}
+
+// モーダル外クリック・Escで閉じる
+document.getElementById('editModalOverlay').addEventListener('click', e => {
+  if (e.target.id === 'editModalOverlay') closeEditModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('editModalOverlay').classList.contains('open')) closeEditModal();
+});
 
 // ── 作品情報操作 ──────────────────────────────────────────
 function saveWorkInfo(id) {
@@ -1231,7 +1357,7 @@ function onAdminDragLeave(e) {
 
 function onAdminDragEnd(e) {
   e.currentTarget.draggable = false;
-  document.querySelectorAll('#adminView tr').forEach(el => {
+  document.querySelectorAll('#adminView .admin-card').forEach(el => {
     el.classList.remove('dragging', 'drag-over');
     el.draggable = false;
   });
