@@ -657,7 +657,7 @@ function getInfo(w) {
 function isCustomWork(w) { return !!fbState.customWorks[w.id]; }
 
 function saveInfo(id, patch) {
-  const w = WORKS.find(x => x.id === id);
+  const w = getWorks().find(x => x.id === id);
   return fbSet(`workinfo/${id}`, { ...getInfo(w), ...patch });
 }
 
@@ -779,7 +779,7 @@ function doEntry(id) {
   const list = fbState.entries[id] || [];
   if (list.includes(name)) { showMsg(msgEl, `「${name}」はすでにエントリー済みです`, 'err'); return; }
 
-  const w   = WORKS.find(x => x.id === id);
+  const w   = getWorks().find(x => x.id === id);
   const cap = w ? getInfo(w).capacity : 0;
   if (cap > 0 && list.length >= cap) { showMsg(msgEl, '定員に達したためエントリーできません', 'err'); return; }
 
@@ -795,7 +795,7 @@ function doEntry(id) {
 function commitEntry(id, name) {
   const list = [...(fbState.entries[id] || [])];
   if (list.includes(name)) return;
-  const w   = WORKS.find(x => x.id === id);
+  const w   = getWorks().find(x => x.id === id);
   const cap = w ? getInfo(w).capacity : 0;
   if (cap > 0 && list.length >= cap) return;
   list.push(name);
@@ -810,7 +810,7 @@ function confirmRemoveEntry(id, index, label = '取り消し') {
   const list  = fbState.entries[id] || [];
   const name  = list[index];
   if (name === undefined) return;
-  const w     = WORKS.find(x => x.id === id);
+  const w     = getWorks().find(x => x.id === id);
   const title = w ? getInfo(w).title : '';
   openConfirm({
     title: `エントリーの${label}`,
@@ -1091,7 +1091,7 @@ function clearAll() {
 
 // ── 作品削除 ─────────────────────────────────────────────
 function askDeleteWork(id) {
-  const w     = WORKS.find(x => x.id === id);
+  const w     = getWorks().find(x => x.id === id);
   if (!w) return;
   const title = getInfo(w).title;
   const count = (fbState.entries[id] || []).length;
