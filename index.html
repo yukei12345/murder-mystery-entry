@@ -857,6 +857,7 @@ function getAllCats() {
 
 function getPlayerOptions() {
   const caps = getWorks()
+    .filter(w => getInfo(w).status === 'recruiting')
     .map(w => getInfo(w).capacity)
     .filter(c => c > 0);
   return [...new Set(caps)].sort((a, b) => a - b);
@@ -876,15 +877,20 @@ function renderFilterBar() {
   const works   = getWorks();
   const playerOpts = getPlayerOptions();
 
+  const matchesStatus = w => {
+    const s = getInfo(w).status;
+    return showArchived ? s !== 'recruiting' : s === 'recruiting';
+  };
+
   const countOf = c => (c === 'その他')
-    ? works.filter(w => !getCategories().includes(getWorkCat(w)) && matchesPlayerFilter(w)).length
-    : works.filter(w => getWorkCat(w) === c && matchesPlayerFilter(w)).length;
+    ? works.filter(w => !getCategories().includes(getWorkCat(w)) && matchesPlayerFilter(w) && matchesStatus(w)).length
+    : works.filter(w => getWorkCat(w) === c && matchesPlayerFilter(w) && matchesStatus(w)).length;
 
   const playerCountOf = cap =>
-    works.filter(w => getInfo(w).capacity === cap && (activeFilter === 'all' || getWorkCat(w) === activeFilter || (activeFilter === 'その他' && !getCategories().includes(getWorkCat(w))))).length;
+    works.filter(w => getInfo(w).capacity === cap && matchesStatus(w) && (activeFilter === 'all' || getWorkCat(w) === activeFilter || (activeFilter === 'その他' && !getCategories().includes(getWorkCat(w))))).length;
 
   const catSection = [
-    `<button class="filter-chip ${activeFilter==='all'?'active':''}" aria-pressed="${activeFilter==='all'}" onclick="setFilter('all')">すべて<span class="filter-count">${works.filter(w => matchesPlayerFilter(w)).length}</span></button>`,
+    `<button class="filter-chip ${activeFilter==='all'?'active':''}" aria-pressed="${activeFilter==='all'}" onclick="setFilter('all')">すべて<span class="filter-count">${works.filter(w => matchesPlayerFilter(w) && matchesStatus(w)).length}</span></button>`,
     ...cats.map(c =>
       `<button class="filter-chip ${activeFilter===c?'active':''}" aria-pressed="${activeFilter===c}" onclick="setFilter('${esc(c)}')">${esc(c)}<span class="filter-count">${countOf(c)}</span></button>`
     ),
