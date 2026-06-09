@@ -241,6 +241,20 @@
       color: var(--accent-dark); white-space: nowrap;
     }
 
+    /* サムネイル */
+    .work-thumbnail { width: 100%; overflow: hidden; border-bottom: 1px solid var(--border); background: var(--surface2); }
+    .work-thumbnail img { width: 100%; height: 180px; object-fit: cover; display: block; }
+
+    /* 作品URL */
+    .work-url-link {
+      display: inline-flex; align-items: center; gap: 0.25rem;
+      font-size: 0.73rem; color: var(--accent); font-weight: 600;
+      text-decoration: none; padding: 0.15rem 0;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .work-url-link:hover { color: var(--accent-dark); border-bottom-color: var(--accent-dark); }
+
     .work-info {
       display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
       padding: 0.6rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2);
@@ -669,8 +683,10 @@
       <div class="field-row"><span class="field-label">時間</span>  <input class="a-input fill" id="editModal-time"     maxlength="20" placeholder="例：約120分" /></div>
       <div class="field-row"><span class="field-label">作者</span>  <input class="a-input fill" id="editModal-author"   maxlength="40" /></div>
       <div class="field-row"><span class="field-label">金額</span>  <input class="a-input fill" id="editModal-price"    maxlength="20" placeholder="例：2,000円" /></div>
-      <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="editModal-tags"     maxlength="100" placeholder="カンマ区切りで入力" /></div>
+      <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="editModal-tags"      maxlength="100" placeholder="カンマ区切りで入力" /></div>
       <div class="field-row"><span class="field-label">カテゴリ</span><select class="a-select" id="editModal-cat"></select></div>
+      <div class="field-row"><span class="field-label">作品URL</span><input class="a-input fill" id="editModal-url"       maxlength="500" placeholder="https://..." /></div>
+      <div class="field-row"><span class="field-label">画像URL</span><input class="a-input fill" id="editModal-thumbnail" maxlength="500" placeholder="https://..." /></div>
       <hr style="border:none;border-top:1px solid var(--border);margin:0.4rem 0" />
       <div class="field-row"><span class="field-label">状態</span>
         <select class="a-select" id="editModal-status">
@@ -808,6 +824,8 @@ function getInfo(w) {
     status:      saved.status      ?? 'recruiting',
     scheduledAt: saved.scheduledAt ?? '',
     venue:       saved.venue       ?? '',
+    thumbnail:   saved.thumbnail   ?? w.thumbnail   ?? '',
+    url:         saved.url         ?? w.url         ?? '',
   };
 }
 
@@ -982,8 +1000,15 @@ function renderWork(w, entries) {
 
   const cardClass = ['work', isFull && !isConfirmed && !isDone ? 'is-full' : '', isDone ? 'is-done' : ''].filter(Boolean).join(' ');
 
+  const urlLink = info.url
+    ? `<a href="${esc(info.url)}" target="_blank" rel="noopener noreferrer" class="work-url-link">
+         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+         作品ページ
+       </a>` : '';
+
   return `
     <div class="${cardClass}" data-id="${w.id}">
+      ${info.thumbnail ? `<div class="work-thumbnail"><img src="${esc(info.thumbnail)}" alt="${esc(info.title)} サムネイル" loading="lazy" onerror="this.closest('.work-thumbnail').style.display='none'" /></div>` : ''}
       <div class="work-header">
         <span class="work-title">${esc(info.title)}</span>
         <span class="${badgeClass}">${badge}</span>
@@ -995,6 +1020,7 @@ function renderWork(w, entries) {
         <span class="info-item"><span class="sr-only">所要時間</span>${ICON.clock} ${esc(info.time)}</span>
         ${info.author ? `<span class="info-sep" aria-hidden="true">·</span><span class="info-item"><span class="sr-only">作者</span>${ICON.author} ${esc(info.author)}</span>` : ''}
         ${info.price  ? `<span class="info-sep" aria-hidden="true">·</span><span class="info-item"><span class="sr-only">金額</span>${ICON.price} ${esc(info.price)}</span>` : ''}
+        ${urlLink ? `<span class="info-sep" aria-hidden="true">·</span>${urlLink}` : ''}
       </div>
       ${scheduleBar}
       ${tagHtml ? `<div class="work-tags">${tagHtml}</div>` : ''}
@@ -1196,6 +1222,7 @@ function renderAdmin() {
          ondragleave="onAdminDragLeave(event)"
          ondrop="onAdminDrop(event,'${w.id}')"
          ondragend="onAdminDragEnd(event)">
+      ${info.thumbnail ? `<div class="work-thumbnail" style="max-height:120px"><img src="${esc(info.thumbnail)}" alt="" loading="lazy" style="height:120px" onerror="this.closest('.work-thumbnail').style.display='none'" /></div>` : ''}
       <div class="admin-card-header">
         <span class="admin-drag-handle" title="ドラッグして並び替え" aria-hidden="true"
               onmousedown="this.closest('.admin-card').draggable=true"
@@ -1343,6 +1370,8 @@ function openEditModal(id) {
   document.getElementById('editModal-status').value      = info.status;
   document.getElementById('editModal-scheduledAt').value = info.scheduledAt;
   document.getElementById('editModal-venue').value       = info.venue;
+  document.getElementById('editModal-url').value         = info.url;
+  document.getElementById('editModal-thumbnail').value   = info.thumbnail;
   document.getElementById('editModal-msg').textContent = '';
   document.getElementById('editModalOverlay').classList.add('open');
   document.getElementById('editModal-title').focus();
@@ -1367,12 +1396,14 @@ function saveEditModal() {
   const status      = document.getElementById('editModal-status').value;
   const scheduledAt = document.getElementById('editModal-scheduledAt').value.trim();
   const venue       = document.getElementById('editModal-venue').value.trim();
+  const url         = document.getElementById('editModal-url').value.trim();
+  const thumbnail   = document.getElementById('editModal-thumbnail').value.trim();
   const msgEl       = document.getElementById('editModal-msg');
 
   if (!title) { showMsg(msgEl, '作品名は必須です', 'err'); return; }
 
   const commit = () => {
-    saveInfo(id, { title, players, time, author, price, tags, capacity, status, scheduledAt, venue });
+    saveInfo(id, { title, players, time, author, price, tags, capacity, status, scheduledAt, venue, url, thumbnail });
     fbSet(`workcats/${id}`, cat);
     closeEditModal();
   };
