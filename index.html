@@ -73,9 +73,24 @@
       background: var(--accent-soft); border: 1px solid var(--border);
       border-radius: 20px; padding: 0.25rem 0.7rem; white-space: nowrap;
     }
-    .header-admin-btn {
-      background: var(--bg);
+    .header-admin-btn { background: var(--bg); }
+
+    /* ── 同期インジケーター ── */
+    .sync-bar {
+      border-bottom: 1px solid var(--border);
+      padding: 0.3rem 1rem; text-align: center;
+      font-size: 0.72rem; color: var(--accent-dark);
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+      background: var(--accent-soft);
     }
+    .sync-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent); display: inline-block;
+      animation: pulse 2s infinite;
+    }
+    .sync-bar.offline { background: #fff3f3; border-color: #f5c6c6; color: var(--red); }
+    .sync-bar.offline .sync-dot { background: var(--red); animation: none; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
     /* ── Main ── */
     main { max-width: 700px; margin: 0 auto; padding: 2rem 1rem 5rem; }
@@ -94,10 +109,7 @@
     }
     .filter-chip:hover { border-color: var(--accent); color: var(--accent); }
     .filter-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    .filter-chip.active {
-      background: var(--accent);
-      border-color: var(--accent); color: #fff; font-weight: 500;
-    }
+    .filter-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
     .filter-count { opacity: 0.75; font-size: 0.72rem; margin-left: 0.3rem; }
     .no-result { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 2rem 0; }
 
@@ -108,93 +120,57 @@
       font-size: 0.8rem; letter-spacing: 0.08em; color: var(--text); font-weight: 700;
       white-space: nowrap; padding-left: 0.6rem; border-left: 3px solid var(--accent);
     }
-    .category-heading-line  { flex: 1; height: 1px; background: var(--border); }
+    .category-heading-line { flex: 1; height: 1px; background: var(--border); }
 
     /* ── Work card ── */
     .works { display: flex; flex-direction: column; gap: 1rem; }
 
     .work {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
       box-shadow: 0 1px 2px rgba(31,42,35,0.04);
       transition: border-color 0.15s, box-shadow 0.15s;
     }
     .work:hover { box-shadow: 0 4px 14px rgba(31,42,35,0.07); }
     .work:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
 
-    /* タイトルバー */
     .work-header {
-      padding: 0.9rem 1.25rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
+      padding: 0.9rem 1.25rem 0.75rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
     }
     .work-title { font-weight: 700; font-size: 1rem; color: var(--text); }
     .work-badge {
-      flex-shrink: 0;
-      background: var(--accent-soft);
-      border: 1px solid transparent;
-      border-radius: 20px;
-      font-size: 0.7rem;
-      padding: 0.15rem 0.65rem;
-      color: var(--accent-dark);
-      white-space: nowrap;
+      flex-shrink: 0; background: var(--accent-soft); border: 1px solid transparent;
+      border-radius: 20px; font-size: 0.7rem; padding: 0.15rem 0.65rem;
+      color: var(--accent-dark); white-space: nowrap;
     }
 
-    /* 情報行 */
     .work-info {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.6rem 1.25rem;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface2);
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+      padding: 0.6rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2);
     }
-    .info-item {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
+    .info-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--muted); }
     .info-item svg { flex-shrink: 0; color: var(--accent); opacity: 0.9; }
     .info-sep { color: var(--border-strong); font-size: 0.7rem; }
 
-    /* タグ */
     .work-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
-      padding: 0.55rem 1.25rem;
-      border-bottom: 1px solid var(--border);
+      display: flex; flex-wrap: wrap; gap: 0.35rem;
+      padding: 0.55rem 1.25rem; border-bottom: 1px solid var(--border);
     }
     .tag {
-      background: var(--bg);
-      border: 1px solid var(--border-strong);
-      color: var(--muted);
-      font-size: 0.68rem;
-      padding: 0.1rem 0.55rem;
-      border-radius: 4px;
+      background: var(--bg); border: 1px solid var(--border-strong);
+      color: var(--muted); font-size: 0.68rem; padding: 0.1rem 0.55rem; border-radius: 4px;
     }
     .work-tags:empty { display: none; }
 
-    /* エントリー */
     .work-bottom { padding: 0.9rem 1.25rem; }
     .entries-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.05em; margin-bottom: 0.45rem; }
     .entry-list { display: flex; flex-wrap: wrap; gap: 0.4rem; min-height: 1.8rem; margin-bottom: 0.8rem; }
     .entry-chip {
       display: inline-flex; align-items: center; gap: 0.35rem;
-      background: var(--accent-soft);
-      border: 1px solid transparent;
-      color: var(--accent-dark);
-      font-size: 0.73rem;
-      padding: 0.18rem 0.4rem 0.18rem 0.65rem;
-      border-radius: 20px;
+      background: var(--accent-soft); border: 1px solid transparent;
+      color: var(--accent-dark); font-size: 0.73rem;
+      padding: 0.18rem 0.4rem 0.18rem 0.65rem; border-radius: 20px;
     }
     .chip-remove {
       display: inline-flex; align-items: center; justify-content: center;
@@ -208,10 +184,7 @@
     .chip-remove:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 1px; }
     .entry-empty { font-size: 0.73rem; color: var(--muted); align-self: center; }
 
-    .work-badge-full {
-      background: var(--red) !important; color: #fff !important;
-      border-color: var(--red) !important; font-weight: 700;
-    }
+    .work-badge-full { background: var(--red) !important; color: #fff !important; border-color: var(--red) !important; font-weight: 700; }
     .full-notice {
       font-size: 0.78rem; color: var(--muted);
       background: var(--surface2); border: 1px dashed var(--border-strong);
@@ -222,16 +195,10 @@
     .entry-form { display: flex; gap: 0.5rem; align-items: stretch; }
     .entry-form .btn { flex-shrink: 0; white-space: nowrap; }
     .entry-input {
-      flex: 1 1 auto;
-      min-width: 0;
-      background: var(--bg);
-      border: 1px solid var(--border-strong);
-      border-radius: var(--radius);
-      padding: 0.5rem 0.75rem;
-      font-size: 16px;
-      font-family: inherit;
-      color: var(--text);
-      outline: none;
+      flex: 1 1 auto; min-width: 0; background: var(--bg);
+      border: 1px solid var(--border-strong); border-radius: var(--radius);
+      padding: 0.5rem 0.75rem; font-size: 16px; font-family: inherit;
+      color: var(--text); outline: none;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
     .entry-input::placeholder { color: var(--muted); }
@@ -256,14 +223,11 @@
     .btn-xs:focus-visible { outline: 2px solid var(--accent-dark); outline-offset: 1px; }
     .btn-del   { background: #fff; color: var(--red);    border-color: var(--red); }
     .btn-save  { background: var(--accent); color: #fff;  border-color: var(--accent); }
-    .btn-muted { background: #fff; color: var(--muted); border-color: var(--border-strong);}
+    .btn-muted { background: #fff; color: var(--muted); border-color: var(--border-strong); }
 
     .msg { font-size: 0.73rem; margin-top: 0.4rem; min-height: 1rem; }
     .msg-ok  { color: var(--green); }
     .msg-err { color: var(--red); }
-
-    /* ── Divider ── */
-    .divider { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0 1.5rem; }
 
     /* ── Admin ── */
     .admin-toggle {
@@ -274,11 +238,7 @@
     .admin-toggle:hover { border-color: var(--accent); color: var(--accent); }
     .admin-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-    .admin-panel {
-      display: none;
-      background: var(--surface2);
-      border-bottom: 1px solid var(--border);
-    }
+    .admin-panel { display: none; background: var(--surface2); border-bottom: 1px solid var(--border); }
     .admin-panel.open { display: block; }
     .admin-panel-inner { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem; }
 
@@ -307,13 +267,10 @@
       padding-bottom: 0.4rem; border-bottom: 1px solid var(--border);
     }
 
-    /* カテゴリ管理 */
     .cat-list { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
     .cat-row  { display: flex; gap: 0.4rem; align-items: center; }
-
     .add-cat-row { display: flex; gap: 0.4rem; }
 
-    /* 共通 admin input */
     .a-input {
       background: var(--bg); border: 1px solid var(--border-strong);
       border-radius: 4px; padding: 0.35rem 0.6rem;
@@ -330,7 +287,6 @@
     }
     select.a-select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
 
-    /* 作品テーブル */
     .admin-table {
       width: 100%; border-collapse: collapse; font-size: 0.8rem;
       background: var(--surface); border-radius: var(--radius);
@@ -388,37 +344,30 @@
     .btn-danger { background: var(--red); color: #fff; }
     .btn-danger:hover { filter: brightness(0.93); }
 
-    /* ── レスポンシブ（スマホ） ── */
+    /* ── Loading ── */
+    .loading { text-align: center; padding: 3rem 1rem; color: var(--muted); font-size: 0.85rem; }
+
+    /* ── レスポンシブ ── */
     @media (max-width: 600px) {
       header { padding: 3.4rem 1rem 1.5rem; }
       .header-admin-area { top: 0.75rem; right: 0.75rem; gap: 0.4rem; }
-      .header-admin-btn {
-        padding: 0.35rem 0.8rem; font-size: 0.72rem;
-      }
+      .header-admin-btn { padding: 0.35rem 0.8rem; font-size: 0.72rem; }
       .header-admin-status { font-size: 0.68rem; padding: 0.22rem 0.6rem; }
       main { padding: 1.5rem 0.9rem 4rem; }
-
       .filter-bar { gap: 0.4rem; margin-bottom: 1.5rem; }
       .filter-chip { padding: 0.35rem 0.8rem; font-size: 0.75rem; }
-
       .work-header { padding: 0.8rem 1rem 0.65rem; }
       .work-info, .work-tags, .work-bottom { padding-left: 1rem; padding-right: 1rem; }
       .work-title { font-size: 0.95rem; }
-
       .entry-form .btn { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
-
       .admin-login { flex-wrap: wrap; }
       .pass-field { flex: 1 1 100%; }
       .pass-field input { width: 100%; }
       .admin-login > .btn { width: 100%; }
-
       .add-cat-row { flex-wrap: wrap; }
       .cat-row { flex-wrap: wrap; }
       .cat-row .a-input { flex: 1 1 100%; }
-
-      .admin-table, .admin-table tbody, .admin-table tr, .admin-table td {
-        display: block; width: 100%;
-      }
+      .admin-table, .admin-table tbody, .admin-table tr, .admin-table td { display: block; width: 100%; }
       .admin-table thead { display: none; }
       .admin-table { border: none; background: transparent; }
       .admin-table tr {
@@ -433,7 +382,6 @@
         color: var(--muted); letter-spacing: 0.05em; margin-bottom: 0.4rem;
       }
       .admin-table td:first-child::before { content: none; }
-
       .modal-actions { flex-direction: column-reverse; }
       .modal-actions .btn { width: 100%; }
     }
@@ -444,7 +392,6 @@
       .entry-form .btn { width: 100%; }
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -458,6 +405,11 @@
   <p>参加したい作品に名前を入力してエントリーしてください</p>
   <p class="header-pass">管理者パスワード：<code id="headerPass"></code></p>
 </header>
+
+<div class="sync-bar" id="syncBar">
+  <span class="sync-dot"></span>
+  <span id="syncText">接続中...</span>
+</div>
 
 <div class="admin-panel" id="adminPanel">
   <div class="admin-panel-inner">
@@ -477,7 +429,7 @@
 
 <main id="publicView">
   <div class="filter-bar" id="filterBar" role="group" aria-label="カテゴリで絞り込み"></div>
-  <div id="works"></div>
+  <div id="works"><p class="loading">データを読み込み中...</p></div>
 </main>
 
 <div class="modal-overlay" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmMsg">
@@ -491,99 +443,77 @@
   </div>
 </div>
 
+<!-- Firebase SDK (CDN) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <script>
-// ── Supabase ──────────────────────────────────────────────
-const _supa = supabase.createClient(
-  'https://znhvtewblvrqcmxygwbo.supabase.co',
-  'sb_publishable_Ig7mrvJOhOMUuU6os5patQ_AohDyVjl'
-);
+// ── Firebase 初期化 ───────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyA5lVqe566PsDFm9R-VTORM6doHPm1lG_k",
+  authDomain: "murder-mystery-entry.firebaseapp.com",
+  databaseURL: "https://murder-mystery-entry-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "murder-mystery-entry",
+  storageBucket: "murder-mystery-entry.firebasestorage.app",
+  messagingSenderId: "350564784867",
+  appId: "1:350564784867:web:104183a27bd5106e9243d6"
+};
 
-// rowId → {name, workId} のキャッシュ（削除ボタン用）
-let _currentEntries = {};
-
-async function dbGetEntries() {
-  const { data, error } = await _supa.from('entries').select('*').order('created_at');
-  if (error) { console.error('getEntries:', error); return {}; }
-  _currentEntries = {};
-  const out = {};
-  (data || []).forEach(r => {
-    if (!out[r.work_id]) out[r.work_id] = [];
-    out[r.work_id].push({ name: r.name, rowId: r.id });
-    _currentEntries[r.id] = { name: r.name, workId: r.work_id };
-  });
-  return out;
-}
-
-async function dbAddEntry(workId, name) {
-  const { error } = await _supa.from('entries').insert({ work_id: workId, name });
-  if (error) throw error;
-}
-
-async function dbRemoveEntry(rowId) {
-  const { error } = await _supa.from('entries').delete().eq('id', rowId);
-  if (error) throw error;
-}
-
-async function dbClearEntries() {
-  const { error } = await _supa.from('entries').delete().not('id', 'is', null);
-  if (error) throw error;
-}
+firebase.initializeApp(firebaseConfig);
+const db      = firebase.database();
+const rootRef = db.ref('mm');
 
 // ── デフォルトデータ ──────────────────────────────────────
 const DEFAULT_CATEGORIES = ['初回の方向け', '複数回経験済み'];
 
 const WORKS = [
-  {
-    id: 'w1', title: '九頭竜館の殺人', defaultCat: '初回の方向け',
-    players: '7〜9名', time: '約120分', capacity: 9,
-    tags: ['Level★☆☆', '館', 'ホラー', 'GM不要'],
-  },
-  {
-    id: 'w2', title: '人狼村の祝祭', defaultCat: '初回の方向け',
-    players: '7〜8名', time: '約120分', capacity: 8,
-    tags: ['Level★☆☆', 'ファンタジー', 'GM不要'],
-  },
-  {
-    id: 'w3', title: '最果亭の災禍', defaultCat: '初回の方向け',
-    players: '6〜8名', time: '約180分', capacity: 8,
-    tags: ['Level★☆☆', 'ファンタジー', 'GM不要'],
-  },
-  {
-    id: 'w4', title: '何度だって青い月に火を灯した', defaultCat: '複数回経験済み',
-    players: '6〜7名', time: '約150分', capacity: 7,
-    tags: ['Level★★☆', 'マフィア', '群像劇', 'GM不要'],
-  },
-  {
-    id: 'w5', title: 'ダークユールに贖いを', defaultCat: '複数回経験済み',
-    players: '7〜9名', time: '約180分', capacity: 9,
-    tags: ['Level★★★', '吸血鬼', 'ロールプレイ', 'GM不要'],
-  },
+  { id: 'w1', title: '九頭竜館の殺人',            defaultCat: '初回の方向け',    players: '7〜9名', time: '約120分', capacity: 9, tags: ['Level★☆☆', '館', 'ホラー', 'GM不要'] },
+  { id: 'w2', title: '人狼村の祝祭',              defaultCat: '初回の方向け',    players: '7〜8名', time: '約120分', capacity: 8, tags: ['Level★☆☆', 'ファンタジー', 'GM不要'] },
+  { id: 'w3', title: '最果亭の災禍',              defaultCat: '初回の方向け',    players: '6〜8名', time: '約180分', capacity: 8, tags: ['Level★☆☆', 'ファンタジー', 'GM不要'] },
+  { id: 'w4', title: '何度だって青い月に火を灯した', defaultCat: '複数回経験済み', players: '6〜7名', time: '約150分', capacity: 7, tags: ['Level★★☆', 'マフィア', '群像劇', 'GM不要'] },
+  { id: 'w5', title: 'ダークユールに贖いを',        defaultCat: '複数回経験済み', players: '7〜9名', time: '約180分', capacity: 9, tags: ['Level★★★', '吸血鬼', 'ロールプレイ', 'GM不要'] },
 ];
 
 const ADMIN_PASS = 'mystery'; // ← パスワードをここで変更
 
-// ── ストレージ（管理設定は引き続きlocalStorage） ──────────
-const KEYS = {
-  categories: 'mm_categories',
-  workcats:   'mm_workcats',
-  workinfo:   'mm_workinfo',
-  deleted:    'mm_deleted',
-};
+// ── Firebase 状態（リアルタイム同期） ────────────────────
+let fbState = { entries: {}, categories: null, workcats: {}, workinfo: {}, deleted: [] };
+let fbReady = false;
 
-function lsGet(key, def) {
-  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : def; }
-  catch { return def; }
+rootRef.on('value', (snapshot) => {
+  const data       = snapshot.val() || {};
+  fbState.entries    = data.entries    || {};
+  fbState.categories = data.categories || null;
+  fbState.workcats   = data.workcats   || {};
+  fbState.workinfo   = data.workinfo   || {};
+  fbState.deleted    = data.deleted    || [];
+  fbReady = true;
+  setSyncOnline(true);
+  render();
+  if (isAdmin && document.getElementById('adminView').innerHTML) renderAdmin();
+});
+
+db.ref('.info/connected').on('value', (snap) => {
+  if (fbReady) setSyncOnline(snap.val() === true);
+});
+
+function setSyncOnline(online) {
+  const bar  = document.getElementById('syncBar');
+  const text = document.getElementById('syncText');
+  bar.classList.toggle('offline', !online);
+  text.textContent = online
+    ? 'リアルタイム同期中 — 他の人の操作もすぐ反映されます'
+    : 'オフライン — インターネット接続を確認してください';
 }
-function lsSet(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
 
-function getDeleted() { return lsGet(KEYS.deleted, []); }
-function getWorks() {
-  const del = getDeleted();
-  return WORKS.filter(w => !del.includes(w.id));
-}
+// ── Firebase 書き込みヘルパー ─────────────────────────────
+function fbSet(path, value) { return rootRef.child(path).set(value); }
 
-function getCategories() { return lsGet(KEYS.categories, null) || [...DEFAULT_CATEGORIES]; }
-function getWorkCat(w)   { return lsGet(KEYS.workcats, {})[w.id] || w.defaultCat; }
+// ── データアクセサ ────────────────────────────────────────
+function getDeleted()    { return fbState.deleted; }
+function getWorks()      { return WORKS.filter(w => !getDeleted().includes(w.id)); }
+function getCategories() { return fbState.categories || [...DEFAULT_CATEGORIES]; }
+function getWorkCat(w)   { return fbState.workcats[w.id] || w.defaultCat; }
 
 function guessCapacity(playersText) {
   const nums = String(playersText).match(/\d+/g);
@@ -592,7 +522,7 @@ function guessCapacity(playersText) {
 }
 
 function getInfo(w) {
-  const saved = lsGet(KEYS.workinfo, {})[w.id] || {};
+  const saved   = fbState.workinfo[w.id] || {};
   const players = saved.players ?? w.players;
   return {
     title:    saved.title    ?? w.title,
@@ -604,10 +534,8 @@ function getInfo(w) {
 }
 
 function saveInfo(id, patch) {
-  const all = lsGet(KEYS.workinfo, {});
-  const w   = WORKS.find(x => x.id === id);
-  all[id]   = { ...getInfo(w), ...patch };
-  lsSet(KEYS.workinfo, all);
+  const w = WORKS.find(x => x.id === id);
+  return fbSet(`workinfo/${id}`, { ...getInfo(w), ...patch });
 }
 
 // ── SVG アイコン ──────────────────────────────────────────
@@ -625,49 +553,36 @@ function getAllCats() {
   return hasUngrouped ? [...cats, 'その他'] : [...cats];
 }
 
-function setFilter(cat) {
-  activeFilter = cat;
-  render();
-}
+function setFilter(cat) { activeFilter = cat; render(); }
 
-function renderFilterBar(works) {
-  const cats = getAllCats();
-  const total = works.length;
+function renderFilterBar() {
+  const cats  = getAllCats();
+  const works = getWorks();
   const countOf = c => (c === 'その他')
     ? works.filter(w => !getCategories().includes(getWorkCat(w))).length
     : works.filter(w => getWorkCat(w) === c).length;
 
-  const chips = [
-    `<button class="filter-chip ${activeFilter === 'all' ? 'active' : ''}" aria-pressed="${activeFilter === 'all'}" onclick="setFilter('all')">すべて<span class="filter-count">${total}</span></button>`,
+  document.getElementById('filterBar').innerHTML = [
+    `<button class="filter-chip ${activeFilter==='all'?'active':''}" aria-pressed="${activeFilter==='all'}" onclick="setFilter('all')">すべて<span class="filter-count">${works.length}</span></button>`,
     ...cats.map(c =>
-      `<button class="filter-chip ${activeFilter === c ? 'active' : ''}" aria-pressed="${activeFilter === c}" onclick="setFilter('${esc(c)}')">${esc(c)}<span class="filter-count">${countOf(c)}</span></button>`
+      `<button class="filter-chip ${activeFilter===c?'active':''}" aria-pressed="${activeFilter===c}" onclick="setFilter('${esc(c)}')">${esc(c)}<span class="filter-count">${countOf(c)}</span></button>`
     ),
   ].join('');
-
-  document.getElementById('filterBar').innerHTML = chips;
 }
 
-async function render() {
-  const entries = await dbGetEntries();
+function render() {
+  if (!fbReady) return;
+  const entries = fbState.entries;
   const cats    = getCategories();
   const works   = getWorks();
 
-  if (activeFilter !== 'all' && !getAllCats().includes(activeFilter)) {
-    activeFilter = 'all';
-  }
-  renderFilterBar(works);
+  if (activeFilter !== 'all' && !getAllCats().includes(activeFilter)) activeFilter = 'all';
+  renderFilterBar();
 
-  let groups = cats.map(cat => ({
-    cat,
-    works: works.filter(w => getWorkCat(w) === cat),
-  })).filter(g => g.works.length > 0);
-
+  let groups = cats.map(cat => ({ cat, works: works.filter(w => getWorkCat(w) === cat) })).filter(g => g.works.length > 0);
   const ungrouped = works.filter(w => !cats.includes(getWorkCat(w)));
   if (ungrouped.length) groups.push({ cat: 'その他', works: ungrouped });
-
-  if (activeFilter !== 'all') {
-    groups = groups.filter(g => g.cat === activeFilter);
-  }
+  if (activeFilter !== 'all') groups = groups.filter(g => g.cat === activeFilter);
 
   document.getElementById('works').innerHTML = groups.length
     ? groups.map(g => `
@@ -676,33 +591,28 @@ async function render() {
         <span class="category-heading-label">${esc(g.cat)}</span>
         <span class="category-heading-line"></span>
       </div>
-      <div class="works">
-        ${g.works.map(w => renderWork(w, entries[w.id] || [])).join('')}
-      </div>
-    </div>
-  `).join('')
+      <div class="works">${g.works.map(w => renderWork(w, entries[w.id] || [])).join('')}</div>
+    </div>`).join('')
     : '<p class="no-result">該当する作品がありません</p>';
 }
 
 function renderWork(w, entries) {
-  const info = getInfo(w);
-  const cap  = info.capacity;
+  const info   = getInfo(w);
+  const cap    = info.capacity;
   const isFull = cap > 0 && entries.length >= cap;
 
   const chips = entries.length
-    ? entries.map(e =>
-        `<span class="entry-chip">${esc(e.name)}<button class="chip-remove" title="エントリーを取り消す" aria-label="${esc(e.name)} のエントリーを取り消す" onclick="removeOwnEntry('${e.rowId}')">×</button></span>`
+    ? entries.map((n, i) =>
+        `<span class="entry-chip">${esc(n)}<button class="chip-remove" title="エントリーを取り消す" aria-label="${esc(n)} のエントリーを取り消す" onclick="removeOwnEntry('${w.id}',${i})">×</button></span>`
       ).join('')
     : '<span class="entry-empty">まだ誰もエントリーしていません</span>';
 
-  const tagHtml = info.tags.length
-    ? info.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')
-    : '';
+  const tagHtml = info.tags.length ? info.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('') : '';
 
   let badge, badgeClass = 'work-badge';
-  if (isFull) { badge = '満員'; badgeClass += ' work-badge-full'; }
-  else if (cap > 0) { badge = `${entries.length}/${cap}名`; }
-  else { badge = `${entries.length}名エントリー中`; }
+  if (isFull)      { badge = '満員'; badgeClass += ' work-badge-full'; }
+  else if (cap > 0){ badge = `${entries.length}/${cap}名`; }
+  else             { badge = `${entries.length}名エントリー中`; }
 
   const formHtml = isFull
     ? `<p class="full-notice">定員に達したため、現在エントリーを受け付けていません。</p>`
@@ -735,94 +645,64 @@ function renderWork(w, entries) {
 }
 
 // ── エントリー ────────────────────────────────────────────
-async function doEntry(id) {
+function doEntry(id) {
   const input = document.getElementById(`input-${id}`);
   const name  = input.value.trim();
   const msgEl = document.getElementById(`msg-${id}`);
   if (!name) { showMsg(msgEl, '名前を入力してください', 'err'); return; }
 
-  const entries = await dbGetEntries();
-  const list    = entries[id] || [];
-
-  if (list.some(e => e.name === name)) {
-    showMsg(msgEl, `「${name}」はすでにエントリー済みです`, 'err');
-    return;
-  }
+  const list = fbState.entries[id] || [];
+  if (list.includes(name)) { showMsg(msgEl, `「${name}」はすでにエントリー済みです`, 'err'); return; }
 
   const w   = WORKS.find(x => x.id === id);
   const cap = w ? getInfo(w).capacity : 0;
-  if (cap > 0 && list.length >= cap) {
-    showMsg(msgEl, '定員に達したためエントリーできません', 'err');
-    return;
-  }
+  if (cap > 0 && list.length >= cap) { showMsg(msgEl, '定員に達したためエントリーできません', 'err'); return; }
 
   const title = w ? getInfo(w).title : '';
   openConfirm({
     title: 'エントリーの確認',
     message: `<strong>${esc(title)}</strong> に<br><strong>${esc(name)}</strong> としてエントリーします。よろしいですか？`,
-    okLabel: 'エントリーする',
-    danger: false,
+    okLabel: 'エントリーする', danger: false,
     onConfirm: () => commitEntry(id, name),
   });
 }
 
-async function commitEntry(id, name) {
-  try {
-    // 念のため再チェック
-    const entries = await dbGetEntries();
-    const list    = entries[id] || [];
-    if (list.some(e => e.name === name)) return;
-    const w   = WORKS.find(x => x.id === id);
-    const cap = w ? getInfo(w).capacity : 0;
-    if (cap > 0 && list.length >= cap) return;
-
-    await dbAddEntry(id, name);
+function commitEntry(id, name) {
+  const list = [...(fbState.entries[id] || [])];
+  if (list.includes(name)) return;
+  const w   = WORKS.find(x => x.id === id);
+  const cap = w ? getInfo(w).capacity : 0;
+  if (cap > 0 && list.length >= cap) return;
+  list.push(name);
+  fbSet(`entries/${id}`, list).then(() => {
     const input = document.getElementById(`input-${id}`);
     if (input) input.value = '';
-    await render();
-    if (isAdmin && document.getElementById('adminView').innerHTML) await renderAdmin();
-    const msgEl = document.getElementById(`msg-${id}`);
-    showMsg(msgEl, `「${name}」でエントリーしました！`, 'ok');
-  } catch(err) {
-    console.error(err);
-    const msgEl = document.getElementById(`msg-${id}`);
-    showMsg(msgEl, '登録に失敗しました。再度お試しください', 'err');
-  }
+    showMsg(document.getElementById(`msg-${id}`), `「${name}」でエントリーしました！`, 'ok');
+  });
 }
 
-// 参加者自身による取り消し
-function removeOwnEntry(rowId) {
-  const entry = _currentEntries[rowId];
-  if (!entry) return;
-  confirmRemoveEntryById(rowId, entry.name, entry.workId, '取り消し');
-}
-
-// 管理者による削除
-function removeEntry(rowId) {
-  const entry = _currentEntries[rowId];
-  if (!entry) return;
-  confirmRemoveEntryById(rowId, entry.name, entry.workId, '削除');
-}
-
-function confirmRemoveEntryById(rowId, name, workId, label) {
-  const w = WORKS.find(x => x.id === workId);
+function confirmRemoveEntry(id, index, label = '取り消し') {
+  const list  = fbState.entries[id] || [];
+  const name  = list[index];
+  if (name === undefined) return;
+  const w     = WORKS.find(x => x.id === id);
   const title = w ? getInfo(w).title : '';
   openConfirm({
     title: `エントリーの${label}`,
     message: `<strong>${esc(title)}</strong> の<br><strong>${esc(name)}</strong> のエントリーを${label}します。よろしいですか？`,
-    okLabel: `${label}する`,
-    danger: true,
-    onConfirm: async () => {
-      try {
-        await dbRemoveEntry(rowId);
-        await render();
-        if (isAdmin && document.getElementById('adminView').innerHTML) await renderAdmin();
-      } catch(err) {
-        console.error(err);
-      }
+    okLabel: `${label}する`, danger: true,
+    onConfirm: () => {
+      const cur = [...(fbState.entries[id] || [])];
+      const pos = cur[index] === name ? index : cur.indexOf(name);
+      if (pos === -1) return;
+      cur.splice(pos, 1);
+      fbSet(`entries/${id}`, cur.length ? cur : null);
     },
   });
 }
+
+function removeOwnEntry(id, index) { confirmRemoveEntry(id, index, '取り消し'); }
+function removeEntry(id, index)    { confirmRemoveEntry(id, index, '削除'); }
 
 function showMsg(el, text, type) {
   if (!el) return;
@@ -835,32 +715,22 @@ function showMsg(el, text, type) {
 let isAdmin = false;
 
 function toggleAdmin() {
-  const panel = document.getElementById('adminPanel');
-  if (isAdmin) {
-    adminLogout();
-    return;
-  }
-  panel.classList.toggle('open');
+  if (isAdmin) { adminLogout(); return; }
+  document.getElementById('adminPanel').classList.toggle('open');
 }
 
 function togglePassVisible() {
   const input = document.getElementById('adminPass');
   const btn   = document.getElementById('passToggle');
-  if (input.type === 'password') {
-    input.type = 'text';
-    btn.textContent = '隠す';
-    btn.setAttribute('aria-label', 'パスワードを隠す');
-  } else {
-    input.type = 'password';
-    btn.textContent = '表示';
-    btn.setAttribute('aria-label', 'パスワードを表示');
-  }
+  const hide  = input.type === 'password';
+  input.type  = hide ? 'text' : 'password';
+  btn.textContent = hide ? '隠す' : '表示';
+  btn.setAttribute('aria-label', hide ? 'パスワードを隠す' : 'パスワードを表示');
 }
 
 function adminLogin() {
   if (document.getElementById('adminPass').value !== ADMIN_PASS) {
-    document.getElementById('adminErr').textContent = 'パスワードが違います';
-    return;
+    document.getElementById('adminErr').textContent = 'パスワードが違います'; return;
   }
   document.getElementById('adminErr').textContent = '';
   isAdmin = true;
@@ -878,17 +748,17 @@ function adminLogout() {
   document.getElementById('headerStatus').hidden = true;
 }
 
-async function showAdminUI() {
+function showAdminUI() {
   document.getElementById('adminLoginBox').style.display = 'none';
   document.getElementById('publicView').style.display = 'none';
   document.querySelector('.header-admin-btn').textContent = '管理者ログアウト';
   document.getElementById('headerStatus').hidden = false;
-  await renderAdmin();
+  renderAdmin();
 }
 
-async function renderAdmin() {
+function renderAdmin() {
   if (!isAdmin) { document.getElementById('adminView').innerHTML = ''; return; }
-  const entries = await dbGetEntries();
+  const entries = fbState.entries;
   const cats    = getCategories();
 
   const catRows = cats.map((c, i) => `
@@ -905,43 +775,19 @@ async function renderAdmin() {
       `<option value="${esc(c)}" ${getWorkCat(w)===c?'selected':''}>${esc(c)}</option>`
     ).join('');
     const names = list.length
-      ? list.map(e =>
-          `<div class="admin-name-row">${esc(e.name)}
-             <button class="btn-xs btn-del" onclick="removeEntry('${e.rowId}')">削除</button>
-           </div>`).join('')
+      ? list.map((n, i) =>
+          `<div class="admin-name-row">${esc(n)}<button class="btn-xs btn-del" onclick="removeEntry('${w.id}',${i})">削除</button></div>`
+        ).join('')
       : '<span style="color:#7a8475">なし</span>';
 
     return `<tr>
       <td>
-        <div class="field-row">
-          <span class="field-label">作品名</span>
-          <input class="a-input fill" id="i-title-${w.id}"   value="${esc(info.title)}"   maxlength="40" />
-        </div>
-        <div class="field-row">
-          <span class="field-label">人数</span>
-          <input class="a-input fill" id="i-players-${w.id}" value="${esc(info.players)}" maxlength="20" />
-        </div>
-        <div class="field-row">
-          <span class="field-label">定員</span>
-          <input class="a-input" id="i-capacity-${w.id}" type="number" min="0" max="99"
-                 value="${info.capacity}" style="width:5rem" />
-          <span class="field-hint">名（0で無制限）</span>
-        </div>
-        <div class="field-row">
-          <span class="field-label">時間</span>
-          <input class="a-input fill" id="i-time-${w.id}"    value="${esc(info.time)}"    maxlength="20" />
-        </div>
-        <div class="field-row">
-          <span class="field-label">タグ</span>
-          <input class="a-input fill" id="i-tags-${w.id}"    value="${esc(info.tags.join(','))}" maxlength="100"
-                 placeholder="カンマ区切りで入力" />
-        </div>
-        <div class="field-row">
-          <span class="field-label">カテゴリ</span>
-          <select class="a-select" id="i-cat-${w.id}" onchange="saveWorkCat('${w.id}')">
-            ${catOpts}
-          </select>
-        </div>
+        <div class="field-row"><span class="field-label">作品名</span><input class="a-input fill" id="i-title-${w.id}"    value="${esc(info.title)}"           maxlength="40" /></div>
+        <div class="field-row"><span class="field-label">人数</span>  <input class="a-input fill" id="i-players-${w.id}"  value="${esc(info.players)}"         maxlength="20" /></div>
+        <div class="field-row"><span class="field-label">定員</span>  <input class="a-input" id="i-capacity-${w.id}" type="number" min="0" max="99" value="${info.capacity}" style="width:5rem" /><span class="field-hint">名（0で無制限）</span></div>
+        <div class="field-row"><span class="field-label">時間</span>  <input class="a-input fill" id="i-time-${w.id}"     value="${esc(info.time)}"            maxlength="20" /></div>
+        <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="i-tags-${w.id}"     value="${esc(info.tags.join(','))}"  maxlength="100" placeholder="カンマ区切りで入力" /></div>
+        <div class="field-row"><span class="field-label">カテゴリ</span><select class="a-select" id="i-cat-${w.id}" onchange="saveWorkCat('${w.id}')">${catOpts}</select></div>
         <div class="field-row" style="margin-top:0.2rem">
           <button class="btn-xs btn-save"  onclick="saveWorkInfo('${w.id}')">保存</button>
           <button class="btn-xs btn-muted" onclick="resetWorkInfo('${w.id}')">元に戻す</button>
@@ -981,22 +827,20 @@ function addCat() {
   const cats = getCategories();
   if (cats.includes(name)) return;
   cats.push(name);
-  lsSet(KEYS.categories, cats);
   input.value = '';
-  render(); renderAdmin();
+  fbSet('categories', cats);
 }
 
 function saveCat(i) {
-  const val  = document.getElementById(`cat-${i}`).value.trim();
+  const val = document.getElementById(`cat-${i}`).value.trim();
   if (!val) return;
   const cats = getCategories();
   const old  = cats[i];
   cats[i]    = val;
-  lsSet(KEYS.categories, cats);
-  const wc = lsGet(KEYS.workcats, {});
+  const wc   = { ...fbState.workcats };
   WORKS.forEach(w => { if (wc[w.id] === old) wc[w.id] = val; });
-  lsSet(KEYS.workcats, wc);
-  render(); renderAdmin();
+  fbSet('categories', cats);
+  fbSet('workcats', wc);
 }
 
 function deleteCat(i) {
@@ -1006,42 +850,27 @@ function deleteCat(i) {
   openConfirm({
     title: 'カテゴリを削除',
     message: `<strong>${esc(name)}</strong> を削除します。<br>このカテゴリの作品は「その他」に移動します。よろしいですか？`,
-    okLabel: '削除する',
-    danger: true,
-    onConfirm: () => {
-      const cur = getCategories();
-      cur.splice(i, 1);
-      lsSet(KEYS.categories, cur);
-      render(); renderAdmin();
-    },
+    okLabel: '削除する', danger: true,
+    onConfirm: () => { const cur = getCategories(); cur.splice(i, 1); fbSet('categories', cur); },
   });
 }
 
 // ── 作品情報操作 ──────────────────────────────────────────
-async function saveWorkInfo(id) {
-  const title   = document.getElementById(`i-title-${id}`).value.trim();
-  const players = document.getElementById(`i-players-${id}`).value.trim();
-  const time    = document.getElementById(`i-time-${id}`).value.trim();
-  const tagsRaw = document.getElementById(`i-tags-${id}`).value;
-  const tags    = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
-  const capRaw  = document.getElementById(`i-capacity-${id}`).value;
-  const capacity = Math.max(0, parseInt(capRaw, 10) || 0);
+function saveWorkInfo(id) {
+  const title    = document.getElementById(`i-title-${id}`).value.trim();
+  const players  = document.getElementById(`i-players-${id}`).value.trim();
+  const time     = document.getElementById(`i-time-${id}`).value.trim();
+  const tags     = document.getElementById(`i-tags-${id}`).value.split(',').map(t => t.trim()).filter(Boolean);
+  const capacity = Math.max(0, parseInt(document.getElementById(`i-capacity-${id}`).value, 10) || 0);
   if (!title) return;
 
-  const commit = () => {
-    saveInfo(id, { title, players, time, tags, capacity });
-    render(); renderAdmin();
-  };
-
-  const entries = await dbGetEntries();
-  const current = (entries[id] || []).length;
+  const commit  = () => saveInfo(id, { title, players, time, tags, capacity });
+  const current = (fbState.entries[id] || []).length;
   if (capacity > 0 && capacity < current) {
     openConfirm({
       title: '定員の確認',
       message: `現在のエントリー数（<strong>${current}名</strong>）より定員（<strong>${capacity}名</strong>）が少なくなっています。<br>超過している参加者は手動で取り消す必要があります。保存しますか？`,
-      okLabel: '保存する',
-      danger: false,
-      onConfirm: commit,
+      okLabel: '保存する', danger: false, onConfirm: commit,
     });
     return;
   }
@@ -1049,17 +878,13 @@ async function saveWorkInfo(id) {
 }
 
 function resetWorkInfo(id) {
-  const all = lsGet(KEYS.workinfo, {});
-  delete all[id];
-  lsSet(KEYS.workinfo, all);
-  render(); renderAdmin();
+  const wi = { ...fbState.workinfo };
+  delete wi[id];
+  fbSet('workinfo', Object.keys(wi).length ? wi : null);
 }
 
 function saveWorkCat(id) {
-  const val = document.getElementById(`i-cat-${id}`).value;
-  const wc  = lsGet(KEYS.workcats, {}); wc[id] = val;
-  lsSet(KEYS.workcats, wc);
-  render(); renderAdmin();
+  fbSet('workcats', { ...fbState.workcats, [id]: document.getElementById(`i-cat-${id}`).value });
 }
 
 // ── 確認モーダル ──────────────────────────────────────────
@@ -1083,17 +908,13 @@ function closeConfirm() {
 }
 
 document.getElementById('confirmOk').addEventListener('click', () => {
-  const action = pendingAction;
-  closeConfirm();
-  if (action) action();
+  const action = pendingAction; closeConfirm(); if (action) action();
 });
 document.getElementById('confirmModal').addEventListener('click', (e) => {
   if (e.target.id === 'confirmModal') closeConfirm();
 });
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && document.getElementById('confirmModal').classList.contains('open')) {
-    closeConfirm();
-  }
+  if (e.key === 'Escape' && document.getElementById('confirmModal').classList.contains('open')) closeConfirm();
 });
 
 // ── 全エントリーリセット ──────────────────────────────────
@@ -1102,53 +923,33 @@ function clearAll() {
     title: '全エントリーをリセット',
     message: 'すべての作品のエントリーを削除します。<br>この操作は取り消せません。よろしいですか？',
     okLabel: 'リセットする',
-    onConfirm: async () => {
-      try {
-        await dbClearEntries();
-        await render();
-        await renderAdmin();
-      } catch(err) {
-        console.error(err);
-      }
-    },
+    onConfirm: () => fbSet('entries', null),
   });
 }
 
 // ── 作品削除 ─────────────────────────────────────────────
-async function askDeleteWork(id) {
-  const w = WORKS.find(x => x.id === id);
+function askDeleteWork(id) {
+  const w     = WORKS.find(x => x.id === id);
   if (!w) return;
   const title = getInfo(w).title;
-  const entries = await dbGetEntries();
-  const count = (entries[id] || []).length;
-  const extra = count > 0
-    ? `<br>エントリー済みの <strong>${count}名</strong> の情報も一緒に削除されます。`
-    : '';
+  const count = (fbState.entries[id] || []).length;
+  const extra = count > 0 ? `<br>エントリー済みの <strong>${count}名</strong> の情報も一緒に削除されます。` : '';
   openConfirm({
     title: '作品を削除',
     message: `<strong>${esc(title)}</strong> を一覧から削除します。${extra}<br>この操作は取り消せません。よろしいですか？`,
-    okLabel: '削除する',
-    onConfirm: () => deleteWork(id),
+    okLabel: '削除する', onConfirm: () => deleteWork(id),
   });
 }
 
-async function deleteWork(id) {
-  const del = getDeleted();
-  if (!del.includes(id)) { del.push(id); lsSet(KEYS.deleted, del); }
-  await _supa.from('entries').delete().eq('work_id', id);
-  const wc = lsGet(KEYS.workcats, {}); delete wc[id]; lsSet(KEYS.workcats, wc);
-  const wi = lsGet(KEYS.workinfo, {}); delete wi[id]; lsSet(KEYS.workinfo, wi);
-  render(); renderAdmin();
+function deleteWork(id) {
+  const del = [...getDeleted()]; if (!del.includes(id)) del.push(id);
+  const wi  = { ...fbState.workinfo }; delete wi[id];
+  const wc  = { ...fbState.workcats }; delete wc[id];
+  fbSet('deleted', del);
+  fbSet(`entries/${id}`, null);
+  fbSet('workinfo', Object.keys(wi).length ? wi : null);
+  fbSet('workcats', Object.keys(wc).length ? wc : null);
 }
-
-// ── リアルタイム更新 ──────────────────────────────────────
-// 他のユーザーのエントリーが自動で反映される
-_supa.channel('entries-changes')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, () => {
-    render();
-    if (isAdmin && document.getElementById('adminView').innerHTML) renderAdmin();
-  })
-  .subscribe();
 
 // ── utils ─────────────────────────────────────────────────
 function esc(s) {
@@ -1157,7 +958,6 @@ function esc(s) {
 
 // ── 初期化 ────────────────────────────────────────────────
 document.getElementById('headerPass').textContent = ADMIN_PASS;
-render();
 </script>
 </body>
 </html>
