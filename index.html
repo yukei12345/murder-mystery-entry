@@ -228,7 +228,7 @@
       border: 1px solid var(--border-strong);
       border-radius: var(--radius);
       padding: 0.5rem 0.75rem;
-      font-size: 16px; /* iOS自動ズーム防止 */
+      font-size: 16px;
       font-family: inherit;
       color: var(--text);
       outline: none;
@@ -405,10 +405,8 @@
       .work-info, .work-tags, .work-bottom { padding-left: 1rem; padding-right: 1rem; }
       .work-title { font-size: 0.95rem; }
 
-      /* エントリー欄は横並び維持、ボタンは余白を詰める */
       .entry-form .btn { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
 
-      /* 管理画面：横並びを縦に */
       .admin-login { flex-wrap: wrap; }
       .pass-field { flex: 1 1 100%; }
       .pass-field input { width: 100%; }
@@ -418,7 +416,6 @@
       .cat-row { flex-wrap: wrap; }
       .cat-row .a-input { flex: 1 1 100%; }
 
-      /* 管理テーブルをカード化（横スクロール回避） */
       .admin-table, .admin-table tbody, .admin-table tr, .admin-table td {
         display: block; width: 100%;
       }
@@ -447,6 +444,7 @@
       .entry-form .btn { width: 100%; }
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -494,6 +492,43 @@
 </div>
 
 <script>
+// ── Supabase ──────────────────────────────────────────────
+const _supa = supabase.createClient(
+  'https://znhvtewblvrqcmxygwbo.supabase.co',
+  'sb_publishable_Ig7mrvJOhOMUuU6os5patQ_AohDyVjl'
+);
+
+// rowId → {name, workId} のキャッシュ（削除ボタン用）
+let _currentEntries = {};
+
+async function dbGetEntries() {
+  const { data, error } = await _supa.from('entries').select('*').order('created_at');
+  if (error) { console.error('getEntries:', error); return {}; }
+  _currentEntries = {};
+  const out = {};
+  (data || []).forEach(r => {
+    if (!out[r.work_id]) out[r.work_id] = [];
+    out[r.work_id].push({ name: r.name, rowId: r.id });
+    _currentEntries[r.id] = { name: r.name, workId: r.work_id };
+  });
+  return out;
+}
+
+async function dbAddEntry(workId, name) {
+  const { error } = await _supa.from('entries').insert({ work_id: workId, name });
+  if (error) throw error;
+}
+
+async function dbRemoveEntry(rowId) {
+  const { error } = await _supa.from('entries').delete().eq('id', rowId);
+  if (error) throw error;
+}
+
+async function dbClearEntries() {
+  const { error } = await _supa.from('entries').delete().not('id', 'is', null);
+  if (error) throw error;
+}
+
 // ── デフォルトデータ ──────────────────────────────────────
 const DEFAULT_CATEGORIES = ['初回の方向け', '複数回経験済み'];
 
@@ -527,13 +562,12 @@ const WORKS = [
 
 const ADMIN_PASS = 'mystery'; // ← パスワードをここで変更
 
-// ── ストレージ ────────────────────────────────────────────
+// ── ストレージ（管理設定は引き続きlocalStorage） ──────────
 const KEYS = {
-  entries:    'mm_entries',
   categories: 'mm_categories',
   workcats:   'mm_workcats',
-  workinfo:   'mm_workinfo',   // { id: { title, players, time, tags[], capacity } }
-  deleted:    'mm_deleted',    // 削除済み作品IDの配列
+  workinfo:   'mm_workinfo',
+  deleted:    'mm_deleted',
 };
 
 function lsGet(key, def) {
@@ -543,7 +577,6 @@ function lsGet(key, def) {
 function lsSet(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
 
 function getDeleted() { return lsGet(KEYS.deleted, []); }
-// 削除されていない有効な作品の配列
 function getWorks() {
   const del = getDeleted();
   return WORKS.filter(w => !del.includes(w.id));
@@ -552,10 +585,9 @@ function getWorks() {
 function getCategories() { return lsGet(KEYS.categories, null) || [...DEFAULT_CATEGORIES]; }
 function getWorkCat(w)   { return lsGet(KEYS.workcats, {})[w.id] || w.defaultCat; }
 
-// 「7〜9名」などの表記から最大人数を推定（フォールバック用）
 function guessCapacity(playersText) {
   const nums = String(playersText).match(/\d+/g);
-  if (!nums || !nums.length) return 0; // 0 = 定員なし扱い
+  if (!nums || !nums.length) return 0;
   return Math.max(...nums.map(Number));
 }
 
@@ -585,10 +617,9 @@ const ICON = {
 };
 
 // ── メイン描画 ────────────────────────────────────────────
-let activeFilter = 'all'; // 'all' または カテゴリ名
+let activeFilter = 'all';
 
 function getAllCats() {
-  // カテゴリ定義 + 未分類作品の「その他」
   const cats = getCategories();
   const hasUngrouped = getWorks().some(w => !cats.includes(getWorkCat(w)));
   return hasUngrouped ? [...cats, 'その他'] : [...cats];
@@ -599,9 +630,8 @@ function setFilter(cat) {
   render();
 }
 
-function renderFilterBar() {
+function renderFilterBar(works) {
   const cats = getAllCats();
-  const works = getWorks();
   const total = works.length;
   const countOf = c => (c === 'その他')
     ? works.filter(w => !getCategories().includes(getWorkCat(w))).length
@@ -617,16 +647,15 @@ function renderFilterBar() {
   document.getElementById('filterBar').innerHTML = chips;
 }
 
-function render() {
-  const entries = lsGet(KEYS.entries, {});
+async function render() {
+  const entries = await dbGetEntries();
   const cats    = getCategories();
   const works   = getWorks();
 
-  // フィルターで選択中のカテゴリが消えた場合はリセット
   if (activeFilter !== 'all' && !getAllCats().includes(activeFilter)) {
     activeFilter = 'all';
   }
-  renderFilterBar();
+  renderFilterBar(works);
 
   let groups = cats.map(cat => ({
     cat,
@@ -636,7 +665,6 @@ function render() {
   const ungrouped = works.filter(w => !cats.includes(getWorkCat(w)));
   if (ungrouped.length) groups.push({ cat: 'その他', works: ungrouped });
 
-  // フィルター適用
   if (activeFilter !== 'all') {
     groups = groups.filter(g => g.cat === activeFilter);
   }
@@ -658,12 +686,12 @@ function render() {
 
 function renderWork(w, entries) {
   const info = getInfo(w);
-  const cap  = info.capacity; // 0 = 定員なし
+  const cap  = info.capacity;
   const isFull = cap > 0 && entries.length >= cap;
 
   const chips = entries.length
-    ? entries.map((n, i) =>
-        `<span class="entry-chip">${esc(n)}<button class="chip-remove" title="エントリーを取り消す" aria-label="${esc(n)} のエントリーを取り消す" onclick="removeOwnEntry('${w.id}',${i})">×</button></span>`
+    ? entries.map(e =>
+        `<span class="entry-chip">${esc(e.name)}<button class="chip-remove" title="エントリーを取り消す" aria-label="${esc(e.name)} のエントリーを取り消す" onclick="removeOwnEntry('${e.rowId}')">×</button></span>`
       ).join('')
     : '<span class="entry-empty">まだ誰もエントリーしていません</span>';
 
@@ -671,7 +699,6 @@ function renderWork(w, entries) {
     ? info.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')
     : '';
 
-  // バッジ表示（満員なら「満員」、定員ありなら「n/定員名」、なしなら「n名エントリー中」）
   let badge, badgeClass = 'work-badge';
   if (isFull) { badge = '満員'; badgeClass += ' work-badge-full'; }
   else if (cap > 0) { badge = `${entries.length}/${cap}名`; }
@@ -708,16 +735,20 @@ function renderWork(w, entries) {
 }
 
 // ── エントリー ────────────────────────────────────────────
-function doEntry(id) {
-  const input   = document.getElementById(`input-${id}`);
-  const name    = input.value.trim();
-  const msgEl   = document.getElementById(`msg-${id}`);
+async function doEntry(id) {
+  const input = document.getElementById(`input-${id}`);
+  const name  = input.value.trim();
+  const msgEl = document.getElementById(`msg-${id}`);
   if (!name) { showMsg(msgEl, '名前を入力してください', 'err'); return; }
-  const data    = lsGet(KEYS.entries, {});
-  const list    = data[id] || [];
-  if (list.includes(name)) { showMsg(msgEl, `「${name}」はすでにエントリー済みです`, 'err'); return; }
 
-  // 定員チェック
+  const entries = await dbGetEntries();
+  const list    = entries[id] || [];
+
+  if (list.some(e => e.name === name)) {
+    showMsg(msgEl, `「${name}」はすでにエントリー済みです`, 'err');
+    return;
+  }
+
   const w   = WORKS.find(x => x.id === id);
   const cap = w ? getInfo(w).capacity : 0;
   if (cap > 0 && list.length >= cap) {
@@ -735,62 +766,63 @@ function doEntry(id) {
   });
 }
 
-function commitEntry(id, name) {
-  const data = lsGet(KEYS.entries, {});
-  const list = data[id] || [];
-  // 念のため再チェック（モーダル表示中に状況が変わった場合に備える）
-  if (list.includes(name)) return;
-  const w   = WORKS.find(x => x.id === id);
-  const cap = w ? getInfo(w).capacity : 0;
-  if (cap > 0 && list.length >= cap) return;
+async function commitEntry(id, name) {
+  try {
+    // 念のため再チェック
+    const entries = await dbGetEntries();
+    const list    = entries[id] || [];
+    if (list.some(e => e.name === name)) return;
+    const w   = WORKS.find(x => x.id === id);
+    const cap = w ? getInfo(w).capacity : 0;
+    if (cap > 0 && list.length >= cap) return;
 
-  list.push(name);
-  data[id] = list;
-  lsSet(KEYS.entries, data);
-  const input = document.getElementById(`input-${id}`);
-  if (input) input.value = '';
-  render();
-  if (document.getElementById('adminView').innerHTML) renderAdmin();
-  const msgEl = document.getElementById(`msg-${id}`);
-  showMsg(msgEl, `「${name}」でエントリーしました！`, 'ok');
+    await dbAddEntry(id, name);
+    const input = document.getElementById(`input-${id}`);
+    if (input) input.value = '';
+    await render();
+    if (isAdmin && document.getElementById('adminView').innerHTML) await renderAdmin();
+    const msgEl = document.getElementById(`msg-${id}`);
+    showMsg(msgEl, `「${name}」でエントリーしました！`, 'ok');
+  } catch(err) {
+    console.error(err);
+    const msgEl = document.getElementById(`msg-${id}`);
+    showMsg(msgEl, '登録に失敗しました。再度お試しください', 'err');
+  }
 }
 
-// エントリー1件の削除（参加者の取り消し・管理者の削除で共用）
-// label: モーダルの文言を「取り消し」/「削除」で切り替え
-function confirmRemoveEntry(id, index, label = '取り消し') {
-  const list = lsGet(KEYS.entries, {})[id] || [];
-  const name = list[index];
-  if (name === undefined) return;
-  const w = WORKS.find(x => x.id === id);
+// 参加者自身による取り消し
+function removeOwnEntry(rowId) {
+  const entry = _currentEntries[rowId];
+  if (!entry) return;
+  confirmRemoveEntryById(rowId, entry.name, entry.workId, '取り消し');
+}
+
+// 管理者による削除
+function removeEntry(rowId) {
+  const entry = _currentEntries[rowId];
+  if (!entry) return;
+  confirmRemoveEntryById(rowId, entry.name, entry.workId, '削除');
+}
+
+function confirmRemoveEntryById(rowId, name, workId, label) {
+  const w = WORKS.find(x => x.id === workId);
   const title = w ? getInfo(w).title : '';
   openConfirm({
     title: `エントリーの${label}`,
     message: `<strong>${esc(title)}</strong> の<br><strong>${esc(name)}</strong> のエントリーを${label}します。よろしいですか？`,
     okLabel: `${label}する`,
     danger: true,
-    onConfirm: () => {
-      const data = lsGet(KEYS.entries, {});
-      const cur  = data[id] || [];
-      // モーダル表示中の変化に備え、その位置が同じ名前かを確認してから削除
-      if (cur[index] !== name) {
-        const pos = cur.indexOf(name);
-        if (pos === -1) return;
-        cur.splice(pos, 1);
-      } else {
-        cur.splice(index, 1);
+    onConfirm: async () => {
+      try {
+        await dbRemoveEntry(rowId);
+        await render();
+        if (isAdmin && document.getElementById('adminView').innerHTML) await renderAdmin();
+      } catch(err) {
+        console.error(err);
       }
-      data[id] = cur;
-      lsSet(KEYS.entries, data);
-      render();
-      if (document.getElementById('adminView').innerHTML) renderAdmin();
     },
   });
 }
-
-// 参加者自身による取り消し（チップの×）
-function removeOwnEntry(id, index) { confirmRemoveEntry(id, index, '取り消し'); }
-// 管理者による削除
-function removeEntry(id, index)    { confirmRemoveEntry(id, index, '削除'); }
 
 function showMsg(el, text, type) {
   if (!el) return;
@@ -805,11 +837,9 @@ let isAdmin = false;
 function toggleAdmin() {
   const panel = document.getElementById('adminPanel');
   if (isAdmin) {
-    // ログイン済みならヘッダーボタンはログアウト
     adminLogout();
     return;
   }
-  // 未ログインはログインフォームの開閉をトグル
   panel.classList.toggle('open');
 }
 
@@ -844,23 +874,21 @@ function adminLogout() {
   document.getElementById('adminLoginBox').style.display = '';
   document.getElementById('publicView').style.display = '';
   document.getElementById('adminPanel').classList.remove('open');
-  // ヘッダーの表記・ステータスを戻す
   document.querySelector('.header-admin-btn').textContent = '管理者ログイン';
   document.getElementById('headerStatus').hidden = true;
 }
 
-// ログイン済みのUI状態へ（公開ビューを隠し、管理画面のみ表示）
-function showAdminUI() {
+async function showAdminUI() {
   document.getElementById('adminLoginBox').style.display = 'none';
   document.getElementById('publicView').style.display = 'none';
   document.querySelector('.header-admin-btn').textContent = '管理者ログアウト';
   document.getElementById('headerStatus').hidden = false;
-  renderAdmin();
+  await renderAdmin();
 }
 
-function renderAdmin() {
+async function renderAdmin() {
   if (!isAdmin) { document.getElementById('adminView').innerHTML = ''; return; }
-  const entries = lsGet(KEYS.entries, {});
+  const entries = await dbGetEntries();
   const cats    = getCategories();
 
   const catRows = cats.map((c, i) => `
@@ -877,9 +905,9 @@ function renderAdmin() {
       `<option value="${esc(c)}" ${getWorkCat(w)===c?'selected':''}>${esc(c)}</option>`
     ).join('');
     const names = list.length
-      ? list.map((n, i) =>
-          `<div class="admin-name-row">${esc(n)}
-             <button class="btn-xs btn-del" onclick="removeEntry('${w.id}',${i})">削除</button>
+      ? list.map(e =>
+          `<div class="admin-name-row">${esc(e.name)}
+             <button class="btn-xs btn-del" onclick="removeEntry('${e.rowId}')">削除</button>
            </div>`).join('')
       : '<span style="color:#7a8475">なし</span>';
 
@@ -990,7 +1018,7 @@ function deleteCat(i) {
 }
 
 // ── 作品情報操作 ──────────────────────────────────────────
-function saveWorkInfo(id) {
+async function saveWorkInfo(id) {
   const title   = document.getElementById(`i-title-${id}`).value.trim();
   const players = document.getElementById(`i-players-${id}`).value.trim();
   const time    = document.getElementById(`i-time-${id}`).value.trim();
@@ -1005,8 +1033,8 @@ function saveWorkInfo(id) {
     render(); renderAdmin();
   };
 
-  // 既存エントリー数より小さい定員は警告
-  const current = (lsGet(KEYS.entries, {})[id] || []).length;
+  const entries = await dbGetEntries();
+  const current = (entries[id] || []).length;
   if (capacity > 0 && capacity < current) {
     openConfirm({
       title: '定員の確認',
@@ -1054,7 +1082,6 @@ function closeConfirm() {
   pendingAction = null;
 }
 
-// OKボタン・オーバーレイ・ESCのハンドラ
 document.getElementById('confirmOk').addEventListener('click', () => {
   const action = pendingAction;
   closeConfirm();
@@ -1069,25 +1096,31 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// ── 全エントリーリセット（モーダル確認） ─────────────────
+// ── 全エントリーリセット ──────────────────────────────────
 function clearAll() {
   openConfirm({
     title: '全エントリーをリセット',
     message: 'すべての作品のエントリーを削除します。<br>この操作は取り消せません。よろしいですか？',
     okLabel: 'リセットする',
-    onConfirm: () => {
-      lsSet(KEYS.entries, {});
-      render(); renderAdmin();
+    onConfirm: async () => {
+      try {
+        await dbClearEntries();
+        await render();
+        await renderAdmin();
+      } catch(err) {
+        console.error(err);
+      }
     },
   });
 }
 
-// ── 作品削除（モーダル確認） ─────────────────────────────
-function askDeleteWork(id) {
+// ── 作品削除 ─────────────────────────────────────────────
+async function askDeleteWork(id) {
   const w = WORKS.find(x => x.id === id);
   if (!w) return;
   const title = getInfo(w).title;
-  const count = (lsGet(KEYS.entries, {})[id] || []).length;
+  const entries = await dbGetEntries();
+  const count = (entries[id] || []).length;
   const extra = count > 0
     ? `<br>エントリー済みの <strong>${count}名</strong> の情報も一緒に削除されます。`
     : '';
@@ -1099,16 +1132,23 @@ function askDeleteWork(id) {
   });
 }
 
-function deleteWork(id) {
-  // 削除済みリストに追加
+async function deleteWork(id) {
   const del = getDeleted();
   if (!del.includes(id)) { del.push(id); lsSet(KEYS.deleted, del); }
-  // 関連データも掃除
-  const entries = lsGet(KEYS.entries, {});   delete entries[id];   lsSet(KEYS.entries, entries);
-  const wc      = lsGet(KEYS.workcats, {});  delete wc[id];        lsSet(KEYS.workcats, wc);
-  const wi      = lsGet(KEYS.workinfo, {});  delete wi[id];        lsSet(KEYS.workinfo, wi);
+  await _supa.from('entries').delete().eq('work_id', id);
+  const wc = lsGet(KEYS.workcats, {}); delete wc[id]; lsSet(KEYS.workcats, wc);
+  const wi = lsGet(KEYS.workinfo, {}); delete wi[id]; lsSet(KEYS.workinfo, wi);
   render(); renderAdmin();
 }
+
+// ── リアルタイム更新 ──────────────────────────────────────
+// 他のユーザーのエントリーが自動で反映される
+_supa.channel('entries-changes')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, () => {
+    render();
+    if (isAdmin && document.getElementById('adminView').innerHTML) renderAdmin();
+  })
+  .subscribe();
 
 // ── utils ─────────────────────────────────────────────────
 function esc(s) {
