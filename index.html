@@ -207,14 +207,15 @@
     .work.dragging { opacity: 0.4; }
     .work.drag-over { border-color: var(--accent); border-style: dashed; box-shadow: 0 0 0 2px var(--accent-soft); }
 
-    /* ドラッグハンドル */
+    /* ドラッグハンドル（管理者モード時のみ表示） */
     .drag-handle {
-      display: flex; align-items: center; padding: 0 0.5rem;
-      color: var(--border-strong); cursor: grab; flex-shrink: 0;
-      transition: color 0.15s;
+      display: none; align-items: center; padding: 0 0.4rem;
+      color: var(--muted); cursor: grab; flex-shrink: 0;
+      border-radius: 4px; transition: color 0.15s, background 0.15s;
     }
-    .drag-handle:hover { color: var(--accent); }
-    .drag-handle:active { cursor: grabbing; }
+    .admin-mode .drag-handle { display: flex; }
+    .drag-handle:hover { color: var(--accent-dark); background: var(--accent-soft); }
+    .drag-handle:active { cursor: grabbing; color: var(--accent-dark); }
 
     .work-header {
       padding: 0.9rem 1.25rem 0.75rem 0.75rem; border-bottom: 1px solid var(--border);
@@ -492,7 +493,7 @@
   <p class="header-eyebrow">Murder Mystery</p>
   <h1>参加<span>エントリー</span></h1>
   <div class="header-divider"></div>
-  <p class="header-subtitle">参加したい作品に名前を入力してエントリーしてください</p>
+  <p class="header-subtitle">参加したい作品に名前を入力してね</p>
   <p class="header-pass">管理者パスワード：<code id="headerPass"></code></p>
 </header>
 
@@ -733,13 +734,12 @@ function renderWork(w, entries) {
           <button class="btn btn-primary" onclick="doEntry('${w.id}')">エントリー</button>
         </div>`;
 
+  const dragAttrs = isAdmin
+    ? `draggable="true" ondragstart="onDragStart(event,'${w.id}')" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'${w.id}')" ondragend="onDragEnd(event)"`
+    : '';
+
   return `
-    <div class="work" draggable="true" data-id="${w.id}"
-         ondragstart="onDragStart(event,'${w.id}')"
-         ondragover="onDragOver(event)"
-         ondragleave="onDragLeave(event)"
-         ondrop="onDrop(event,'${w.id}')"
-         ondragend="onDragEnd(event)">
+    <div class="work" data-id="${w.id}" ${dragAttrs}>
       <div class="work-header">
         <div class="work-header-left">
           <span class="drag-handle" title="ドラッグして並び替え" aria-hidden="true">
@@ -870,6 +870,7 @@ function adminLogout() {
   document.getElementById('adminView').innerHTML = '';
   document.getElementById('adminLoginBox').style.display = '';
   document.getElementById('publicView').style.display = '';
+  document.getElementById('publicView').classList.remove('admin-mode');
   document.getElementById('adminPanel').classList.remove('open');
   document.querySelector('.header-admin-btn').textContent = '管理者ログイン';
   document.getElementById('headerStatus').hidden = true;
@@ -878,6 +879,7 @@ function adminLogout() {
 function showAdminUI() {
   document.getElementById('adminLoginBox').style.display = 'none';
   document.getElementById('publicView').style.display = 'none';
+  document.getElementById('publicView').classList.add('admin-mode');
   document.querySelector('.header-admin-btn').textContent = '管理者ログアウト';
   document.getElementById('headerStatus').hidden = false;
   renderAdmin();
