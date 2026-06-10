@@ -713,6 +713,8 @@
       .filter-chip { padding: 0.35rem 0.8rem; font-size: 0.75rem; }
       /* SP：画像とコンテンツを縦積み */
       .work-columns { flex-direction: column; }
+      /* SP順序：作品名→画像→作者&URL→PLAYERS/TIME/PRICE */
+      .work-submeta { order: -1; border-top: none; }
       .work-thumb-col { width: 100%; align-self: auto; border-right: none; border-bottom: 1px solid var(--border); }
       .work-thumb-col img { width: 100%; height: auto; }
       .work-no-image { min-height: 80px; }
