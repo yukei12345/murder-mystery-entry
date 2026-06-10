@@ -306,8 +306,11 @@
       padding: 1rem 1.4rem 0.85rem 1rem; border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: flex-start; gap: 0.6rem;
     }
-    /* 開催確定・済みのステータスバッジだけ右へ逃がす */
-    .work-header .status-badge { margin-left: auto; }
+    /* 公開ビュー：ステータスバッジだけ右へ逃がす */
+    .work:not(.work-admin) .work-header .status-badge { margin-left: auto; }
+    /* 管理モード：操作ボタンを右へ。狭い時は折り返す */
+    .work-admin .work-header { flex-wrap: wrap; row-gap: 0.4rem; }
+    .work-admin .work-header .admin-card-actions { margin-left: auto; }
     .work-header-left { display: flex; align-items: center; gap: 0.25rem; flex: 1; min-width: 0; }
     .work-title { font-weight: 700; font-size: 1.12rem; letter-spacing: 0.02em; color: var(--text); }
     .work-badge {
@@ -512,7 +515,7 @@
 
     .admin-panel { display: none; background: var(--surface2); border-bottom: 1px solid var(--border); }
     .admin-panel.open { display: block; }
-    .admin-panel-inner { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem; }
+    .admin-panel-inner { max-width: 980px; margin: 0 auto; padding: 1.5rem 1rem; }
 
     .admin-login { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
     .admin-login input {

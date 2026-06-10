@@ -247,22 +247,36 @@ function render() {
     : '<p class="no-result">該当する作品がありません</p>';
 }
 
-function renderWork(w, entries) {
+const DRAG_HANDLE_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>`;
+
+function renderWork(w, entries, opts = {}) {
+  const admin    = !!opts.admin;
   const info     = getInfo(w);
   const cap      = info.capacity;
   const isFull   = cap > 0 && entries.length >= cap;
   const status   = info.status; // 'recruiting' | 'confirmed' | 'done'
   const isDone   = status === 'done';
   const isConfirmed = status === 'confirmed';
-  const entryOpen   = status === 'recruiting' && !isFull;
 
-  const myName = getMyEntry(w.id, entries);
-  const myIdx  = myName ? entries.indexOf(myName) : -1;
-  const chips  = myName
-    ? `<span class="entry-chip">${esc(myName)}<button class="chip-remove" title="エントリーを取り消す" aria-label="${esc(myName)} のエントリーを取り消す" onclick="removeOwnEntry('${w.id}',${myIdx})">×</button></span>`
-    : entries.length
-      ? '<span class="entry-empty">名前は非公開です</span>'
-      : '<span class="entry-empty">まだ誰もエントリーしていません</span>';
+  // エントリー一覧（管理＝全員＋削除×／公開＝自分のみ表示）
+  let entriesLabel, chips;
+  if (admin) {
+    entriesLabel = 'エントリー';
+    chips = entries.length
+      ? entries.map((n, i) =>
+          `<span class="entry-chip">${esc(n)}<button class="chip-remove" title="${esc(n)}を削除" aria-label="${esc(n)}を削除" onclick="removeEntry('${w.id}',${i})">×</button></span>`
+        ).join('')
+      : '<span class="entry-empty">エントリーなし</span>';
+  } else {
+    const myName = getMyEntry(w.id, entries);
+    const myIdx  = myName ? entries.indexOf(myName) : -1;
+    entriesLabel = entries.length ? `エントリー済み: ${entries.length}名${myName ? '（あなたを含む）' : ''}` : '';
+    chips = myName
+      ? `<span class="entry-chip">${esc(myName)}<button class="chip-remove" title="エントリーを取り消す" aria-label="${esc(myName)} のエントリーを取り消す" onclick="removeOwnEntry('${w.id}',${myIdx})">×</button></span>`
+      : entries.length
+        ? '<span class="entry-empty">名前は非公開です</span>'
+        : '<span class="entry-empty">まだ誰もエントリーしていません</span>';
+  }
 
   const tagHtml = info.tags.length ? info.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('') : '';
 
@@ -279,23 +293,20 @@ function renderWork(w, entries) {
       ? `<span class="status-badge status-done">開催済み</span>`
       : '';
 
-  // 開催日時・場所バー（確定時のみ）
-  const scheduleBar = isConfirmed && (info.scheduledAt || info.venue) ? `
+  // 開催日時・場所バー（確定・済み時）
+  const scheduleBar = (isConfirmed || isDone) && (info.scheduledAt || info.venue) ? `
     <div class="work-schedule">
       ${info.scheduledAt ? `<span class="work-schedule-item">🗓 ${esc(info.scheduledAt)}</span>` : ''}
       ${info.venue       ? `<span class="work-schedule-item">📍 ${esc(info.venue)}</span>`       : ''}
     </div>` : '';
 
-  // エントリーフォーム
-  let formHtml;
-  if (isDone) {
-    formHtml = `<p class="full-notice">この作品は開催済みです。</p>`;
-  } else if (isConfirmed) {
-    formHtml = `<p class="full-notice">開催が確定しました。エントリーの受付は終了しています。</p>`;
-  } else if (isFull) {
-    formHtml = `<p class="full-notice">定員に達したため、現在エントリーを受け付けていません。</p>`;
-  } else {
-    formHtml = `<div class="entry-form">
+  // エントリーフォーム（公開ビューのみ）
+  let formHtml = '';
+  if (!admin) {
+    if (isDone)           formHtml = `<p class="full-notice">この作品は開催済みです。</p>`;
+    else if (isConfirmed) formHtml = `<p class="full-notice">開催が確定しました。エントリーの受付は終了しています。</p>`;
+    else if (isFull)      formHtml = `<p class="full-notice">定員に達したため、現在エントリーを受け付けていません。</p>`;
+    else formHtml = `<div class="entry-form">
           <input class="entry-input" id="input-${w.id}" placeholder="名前を入力" maxlength="20"
                  aria-label="${esc(info.title)} に参加する名前を入力"
                  onkeydown="if(event.key==='Enter') doEntry('${w.id}')" />
@@ -303,7 +314,18 @@ function renderWork(w, entries) {
         </div>`;
   }
 
-  const cardClass = ['work', isFull && !isConfirmed && !isDone ? 'is-full' : '', isDone ? 'is-done' : ''].filter(Boolean).join(' ');
+  // 管理操作（管理モードのみ）
+  const dragHandle = admin
+    ? `<span class="admin-drag-handle" title="ドラッグして並び替え" aria-hidden="true" onmousedown="this.closest('.work').draggable=true" onmouseup="this.closest('.work').draggable=false">${DRAG_HANDLE_SVG}</span>`
+    : '';
+  const adminActions = admin
+    ? `<div class="admin-card-actions"><button class="btn-xs btn-save" onclick="openEditModal('${w.id}')">✏ 編集</button>${isDone ? `<button class="btn-xs btn-muted" onclick="askRerunWork('${w.id}')">🔄 再募集する</button>` : ''}<button class="btn-xs btn-del" onclick="askDeleteWork('${w.id}')">削除</button></div>`
+    : '';
+  const dragAttrs = admin
+    ? `draggable="false" ondragstart="onAdminDragStart(event,'${w.id}')" ondragover="onAdminDragOver(event)" ondragleave="onAdminDragLeave(event)" ondrop="onAdminDrop(event,'${w.id}')" ondragend="onAdminDragEnd(event)"`
+    : '';
+
+  const cardClass = ['work', admin ? 'work-admin' : '', isFull && !isConfirmed && !isDone ? 'is-full' : '', isDone ? 'is-done' : ''].filter(Boolean).join(' ');
 
   const urlLink = info.url
     ? `<a href="${esc(info.url)}" target="_blank" rel="noopener noreferrer" class="work-url-link">
@@ -317,11 +339,13 @@ function renderWork(w, entries) {
     : `<div class="work-no-image">No Image</div>`;
 
   return `
-    <div class="${cardClass}" data-id="${w.id}">
+    <div class="${cardClass}" data-id="${w.id}" ${dragAttrs}>
       <div class="work-header">
+        ${dragHandle}
         <span class="work-title">${esc(info.title)}</span>
         <span class="${badgeClass}">${badge}</span>
         ${statusBadge}
+        ${adminActions}
       </div>
       ${(info.author || urlLink) ? `
       <div class="work-submeta">
@@ -356,10 +380,10 @@ function renderWork(w, entries) {
           ${scheduleBar}
           ${tagHtml ? `<div class="work-tags">${tagHtml}</div>` : ''}
           <div class="work-bottom">
-            ${entries.length ? `<div class="entries-label">エントリー済み: ${entries.length}名${myName ? '（あなたを含む）' : ''}</div>` : ''}
+            ${entriesLabel ? `<div class="entries-label">${entriesLabel}</div>` : ''}
             <div class="entry-list">${chips}</div>
             ${formHtml}
-            <p class="msg" id="msg-${w.id}" role="status" aria-live="polite"></p>
+            ${!admin ? `<p class="msg" id="msg-${w.id}" role="status" aria-live="polite"></p>` : ''}
           </div>
         </div>
       </div>
@@ -504,91 +528,14 @@ function renderAdmin() {
   if (!isAdmin) { document.getElementById('adminView').innerHTML = ''; return; }
   const entries = fbState.entries;
 
-  const DRAG_HANDLE_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>`;
-
   // タブごとの件数
   const tabCounts = { recruiting: 0, confirmed: 0, done: 0 };
   getWorks().forEach(w => { const s = getInfo(w).status; if (s in tabCounts) tabCounts[s]++; });
 
-  const cards = getWorks().filter(w => getInfo(w).status === adminTab).map(w => {
-    const info   = getInfo(w);
-    const list   = entries[w.id] || [];
-    const cap    = info.capacity;
-    const isFull = cap > 0 && list.length >= cap;
-    const isDone      = info.status === 'done';
-    const isConfirmed = info.status === 'confirmed';
-
-    let countBadgeClass = 'work-badge';
-    let countLabel;
-    if (isFull)       { countBadgeClass += ' work-badge-full'; countLabel = `満員 ${list.length}/${cap}名`; }
-    else if (cap > 0) { countLabel = `${list.length} / ${cap}名`; }
-    else              { countLabel = `${list.length}名エントリー中`; }
-
-    const statusBadge = isConfirmed
-      ? `<span class="status-badge status-confirmed">📅 開催確定</span>`
-      : isDone
-        ? `<span class="status-badge status-done">開催済み</span>`
-        : '';
-
-    const tagHtml = info.tags.length
-      ? info.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')
-      : '';
-
-    const entryHtml = list.length
-      ? list.map((n, i) =>
-          `<span class="entry-chip">${esc(n)}<button class="chip-remove" title="${esc(n)}を削除" aria-label="${esc(n)}を削除" onclick="removeEntry('${w.id}',${i})">×</button></span>`
-        ).join('')
-      : `<span style="color:var(--muted);font-size:0.73rem">エントリーなし</span>`;
-
-    const scheduleInfo = (isConfirmed || isDone) && (info.scheduledAt || info.venue)
-      ? `<div style="font-size:0.73rem;color:var(--accent-dark);margin-top:0.15rem;display:flex;flex-wrap:wrap;gap:0.3rem 0.7rem">
-           ${info.scheduledAt ? `<span>🗓 ${esc(info.scheduledAt)}</span>` : ''}
-           ${info.venue       ? `<span>📍 ${esc(info.venue)}</span>`       : ''}
-         </div>` : '';
-
-    const rerunBtn = isDone
-      ? `<button class="btn-xs btn-muted" onclick="askRerunWork('${w.id}')">🔄 再募集する</button>`
-      : '';
-
-    const cardClass = ['admin-card', isFull && !isConfirmed && !isDone ? 'is-full' : '', isDone ? 'is-done' : ''].filter(Boolean).join(' ');
-
-    return `<div class="${cardClass}" data-id="${w.id}"
-         draggable="false"
-         ondragstart="onAdminDragStart(event,'${w.id}')"
-         ondragover="onAdminDragOver(event)"
-         ondragleave="onAdminDragLeave(event)"
-         ondrop="onAdminDrop(event,'${w.id}')"
-         ondragend="onAdminDragEnd(event)">
-      <div class="admin-card-header">
-        <span class="admin-drag-handle" title="ドラッグして並び替え" aria-hidden="true"
-              onmousedown="this.closest('.admin-card').draggable=true"
-              onmouseup="this.closest('.admin-card').draggable=false">${DRAG_HANDLE_SVG}</span>
-        <span class="admin-card-title">${esc(info.title)}</span>
-        <span class="${countBadgeClass}" style="flex-shrink:0">${countLabel}</span>
-        ${statusBadge}
-        <div class="admin-card-actions">
-          <button class="btn-xs btn-save" onclick="openEditModal('${w.id}')">✏ 編集</button>
-          ${rerunBtn}
-          <button class="btn-xs btn-del"  onclick="askDeleteWork('${w.id}')">削除</button>
-        </div>
-      </div>
-      ${info.thumbnail ? `<div class="work-thumbnail"><img src="${esc(info.thumbnail)}" alt="" loading="lazy" style="max-height:140px" onerror="this.closest('.work-thumbnail').style.display='none'" /></div>` : ''}
-      <div class="admin-card-body">
-        <div class="admin-card-info">
-          ${ICON.person} ${esc(info.players)}
-          ${info.time   ? `<span class="info-sep">·</span>${ICON.clock}  ${esc(info.time)}`   : ''}
-          ${info.price  ? `<span class="info-sep">·</span>${ICON.price}  ${esc(info.price)}`  : ''}
-          ${info.author ? `<span class="info-sep">·</span>${ICON.author} ${esc(info.author)}` : ''}
-        </div>
-        ${scheduleInfo}
-        ${tagHtml ? `<div class="admin-card-tags">${tagHtml}</div>` : ''}
-        <div class="admin-card-entries-row">
-          <span class="admin-card-entries-label">エントリー</span>
-          <div class="admin-card-entry-names">${entryHtml}</div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+  const cards = getWorks()
+    .filter(w => getInfo(w).status === adminTab)
+    .map(w => renderWork(w, entries[w.id] || [], { admin: true }))
+    .join('');
 
   document.getElementById('adminView').innerHTML = `
     <div class="admin-section">
@@ -941,7 +888,7 @@ function onAdminDragLeave(e) {
 
 function onAdminDragEnd(e) {
   e.currentTarget.draggable = false;
-  document.querySelectorAll('#adminView .admin-card').forEach(el => {
+  document.querySelectorAll('#adminView .work').forEach(el => {
     el.classList.remove('dragging', 'drag-over');
     el.draggable = false;
   });
