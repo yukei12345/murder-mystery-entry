@@ -219,7 +219,6 @@
       white-space: nowrap; padding: 0.4rem 1rem; border-left: 6px solid var(--accent);
       background: var(--accent-soft); border-radius: 0 8px 8px 0;
     }
-    .category-heading-line { flex: 1; height: 1px; background: var(--border); }
 
     /* ── Work card ── */
     .works { display: flex; flex-direction: column; gap: 1.25rem; }

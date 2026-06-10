@@ -249,7 +249,6 @@ function render() {
     <div class="category-group">
       <div class="category-heading">
         <span class="category-heading-label">${esc(g.cat)}</span>
-        <span class="category-heading-line"></span>
       </div>
       <div class="works">${g.works.map(w => renderWork(w, entries[w.id] || [])).join('')}</div>
     </div>`).join('')
