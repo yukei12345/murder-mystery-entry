@@ -130,6 +130,21 @@
       user-select: all;
     }
 
+    /* ── サイドバー最下部の管理者ブロック ── */
+    .sidebar-admin {
+      margin-top: auto; width: 100%; padding-top: 1.5rem;
+      display: flex; flex-direction: column; gap: 0.7rem;
+      border-top: 1px solid rgba(255,255,255,0.12);
+    }
+    .sidebar-admin .header-pass { margin-top: 0; align-self: center; }
+    .sidebar-admin .admin-login {
+      flex-direction: column; align-items: stretch; gap: 0.5rem; margin-bottom: 0;
+    }
+    .sidebar-admin .pass-field { width: 100%; }
+    .sidebar-admin .pass-field input { width: 100%; }
+    .sidebar-admin .admin-err { color: #ffb4a8; font-size: 0.78rem; margin: 0; text-align: center; }
+    .sidebar-admin .admin-err:empty { display: none; }
+
     .header-admin-area {
       position: absolute; top: 1rem; right: 1.1rem;
       display: flex; align-items: center; gap: 0.5rem;
@@ -139,6 +154,7 @@
       font-size: 0.7rem; color: #c8dfc0; font-weight: 700;
       background: rgba(255,255,255,0.08); border: 1px solid rgba(200,223,192,0.4);
       border-radius: 20px; padding: 0.25rem 0.75rem; white-space: nowrap;
+      align-self: center;
     }
     /* 管理者ボタン：#f0ede8 on #2d5240 ≈ 7.5:1 でAAA達成 */
     .header-admin-btn {
@@ -702,15 +718,27 @@
 <aside class="sidebar">
 <header>
   <div class="header-pattern"></div>
-  <div class="header-admin-area">
-    <span class="header-admin-status" id="headerStatus" hidden>管理者としてログイン中</span>
-    <button class="admin-toggle header-admin-btn" onclick="toggleAdmin()">管理者ログイン</button>
-  </div>
   <p class="header-eyebrow">Murder Mystery</p>
   <h1>参加<span>エントリー</span></h1>
   <div class="header-divider"></div>
   <p class="header-subtitle">参加したい作品に名前を入力してね</p>
-  <p class="header-pass">管理者パスワード：<code id="headerPass"></code></p>
+
+  <div class="sidebar-admin">
+    <span class="header-admin-status" id="headerStatus" hidden>管理者としてログイン中</span>
+    <p class="header-pass">管理者パスワード：<code id="headerPass"></code></p>
+    <div class="admin-login" id="adminLoginBox" style="display:none">
+      <div class="pass-field">
+        <input type="password" id="adminPass" placeholder="パスワード"
+               onkeydown="if(event.key==='Enter') adminLogin()" />
+        <button type="button" class="pass-toggle" id="passToggle"
+                aria-label="パスワードを表示" onclick="togglePassVisible()">表示</button>
+      </div>
+      <button class="btn btn-primary" onclick="adminLogin()">ログイン</button>
+      <button class="btn btn-ghost" onclick="closeAdminPanel()">キャンセル</button>
+    </div>
+    <p class="admin-err" id="adminErr"></p>
+    <button class="admin-toggle header-admin-btn" onclick="toggleAdmin()">管理者ログイン</button>
+  </div>
 </header>
 </aside>
 
@@ -722,17 +750,6 @@
 
 <div class="admin-panel" id="adminPanel">
   <div class="admin-panel-inner">
-    <div class="admin-login" id="adminLoginBox">
-      <div class="pass-field">
-        <input type="password" id="adminPass" placeholder="パスワード"
-               onkeydown="if(event.key==='Enter') adminLogin()" />
-        <button type="button" class="pass-toggle" id="passToggle"
-                aria-label="パスワードを表示" onclick="togglePassVisible()">表示</button>
-      </div>
-      <button class="btn btn-primary" onclick="adminLogin()">ログイン</button>
-      <button class="btn btn-ghost" onclick="closeAdminPanel()">キャンセル</button>
-    </div>
-    <p class="admin-err" id="adminErr"></p>
     <div id="adminView"></div>
   </div>
 </div>
@@ -1261,11 +1278,15 @@ function setAdminTab(tab) { adminTab = tab; renderAdmin(); }
 
 function toggleAdmin() {
   if (isAdmin) { adminLogout(); return; }
-  document.getElementById('adminPanel').classList.toggle('open');
+  // ログアウト時：サイドバー内のログイン入力欄を開く
+  document.getElementById('adminLoginBox').style.display = 'flex';
+  document.querySelector('.header-admin-btn').style.display = 'none';
+  document.getElementById('adminPass').focus();
 }
 
 function closeAdminPanel() {
-  document.getElementById('adminPanel').classList.remove('open');
+  document.getElementById('adminLoginBox').style.display = 'none';
+  document.querySelector('.header-admin-btn').style.display = '';
   document.getElementById('adminPass').value = '';
   document.getElementById('adminErr').textContent = '';
 }
@@ -1292,18 +1313,24 @@ function adminLogout() {
   isAdmin = false;
   document.getElementById('adminPass').value = '';
   document.getElementById('adminView').innerHTML = '';
-  document.getElementById('adminLoginBox').style.display = '';
+  document.getElementById('adminLoginBox').style.display = 'none';
   document.getElementById('publicView').style.display = '';
   document.getElementById('publicView').classList.remove('admin-mode');
   document.getElementById('adminPanel').classList.remove('open');
-  document.querySelector('.header-admin-btn').textContent = '管理者ログイン';
+  const btn = document.querySelector('.header-admin-btn');
+  btn.style.display = '';
+  btn.textContent = '管理者ログイン';
   document.getElementById('headerStatus').hidden = true;
+  document.getElementById('adminErr').textContent = '';
 }
 
 function showAdminUI() {
   document.getElementById('adminLoginBox').style.display = 'none';
   document.getElementById('publicView').style.display = 'none';
-  document.querySelector('.header-admin-btn').textContent = '管理者ログアウト';
+  document.getElementById('adminPanel').classList.add('open');
+  const btn = document.querySelector('.header-admin-btn');
+  btn.style.display = '';
+  btn.textContent = '管理者ログアウト';
   document.getElementById('headerStatus').hidden = false;
   renderAdmin();
 }
