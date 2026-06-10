@@ -636,12 +636,13 @@
     /* ── Admin card list ── */
     .admin-list { display: flex; flex-direction: column; gap: 0.75rem; }
     /* 管理カードの操作ボタンはカード下部のアクションバーに配置 */
+    /* PC：コンパクトなボタンを右寄せ（間延びを防ぐ） */
     .admin-card-footer {
-      display: flex; gap: 0.5rem; padding: 0.65rem 1rem;
+      display: flex; justify-content: flex-end; gap: 0.5rem; padding: 0.65rem 1rem;
       border-top: 1px solid var(--border); background: var(--surface2);
       border-radius: 0 0 12px 12px;
     }
-    .admin-card-footer .btn-xs { flex: 1 1 0; padding: 0.5rem 0.6rem; }
+    .admin-card-footer .btn-xs { flex: 0 0 auto; padding: 0.7rem 1.5rem; font-size: 0.95rem; border-radius: 8px; }
 
     /* ── Edit modal ── */
     .edit-modal-overlay {
@@ -711,7 +712,7 @@
       .admin-login > .btn { width: 100%; }
       /* 管理カードの操作ボタン（SP）：下部アクションバーで全幅2分割 */
       .admin-card-footer { padding: 0.6rem 0.8rem; }
-      .admin-card-footer .btn-xs { padding: 0.6rem 0.5rem; font-size: 0.78rem; }
+      .admin-card-footer .btn-xs { flex: 1 1 0; padding: 0.6rem 0.5rem; font-size: 0.78rem; border-radius: 4px; }
 
       /* edit modal */
       .edit-modal-overlay { padding: 0.75rem 0.75rem 2rem; }
