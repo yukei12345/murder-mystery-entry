@@ -312,6 +312,15 @@ function renderWork(w, entries) {
         </div>`;
   }
 
+  // 名前を入力して自分のエントリーを取り消す（別の端末からでも可）
+  const cancelHtml = (entries.length && !isDone) ? `
+        <button type="button" class="cancel-link" onclick="toggleCancel('${w.id}')">自分のエントリーを取り消す</button>
+        <div class="cancel-form" id="cancelBox-${w.id}" style="display:none">
+          <input class="entry-input" id="cancelInput-${w.id}" placeholder="取り消す名前を入力" maxlength="20"
+                 aria-label="取り消す名前を入力" onkeydown="if(event.key==='Enter') doCancelByName('${w.id}')" />
+          <button class="btn btn-ghost" onclick="doCancelByName('${w.id}')">取り消す</button>
+        </div>` : '';
+
   const cardClass = ['work', isFull && !isConfirmed && !isDone ? 'is-full' : '', isDone ? 'is-done' : ''].filter(Boolean).join(' ');
 
   const urlLink = info.url
@@ -367,6 +376,7 @@ function renderWork(w, entries) {
             ${entries.length ? `<div class="entries-label">エントリー済み: ${entries.length}名${myName ? '（あなたを含む）' : ''}</div>` : ''}
             <div class="entry-list">${chips}</div>
             ${formHtml}
+            ${cancelHtml}
             <p class="msg" id="msg-${w.id}" role="status" aria-live="polite"></p>
           </div>
         </div>
@@ -435,6 +445,27 @@ function confirmRemoveEntry(id, index, label = '取り消し', afterConfirm = nu
 
 function removeOwnEntry(id, index) { confirmRemoveEntry(id, index, '取り消し', () => clearMyEntry(id)); }
 function removeEntry(id, index)    { confirmRemoveEntry(id, index, '削除'); }
+
+// 名前入力欄の開閉
+function toggleCancel(id) {
+  const box = document.getElementById(`cancelBox-${id}`);
+  if (!box) return;
+  const open = box.style.display !== 'none';
+  box.style.display = open ? 'none' : 'flex';
+  if (!open) { const inp = document.getElementById(`cancelInput-${id}`); if (inp) inp.focus(); }
+}
+
+// 入力された名前に一致するエントリーを取り消す（端末をまたいでも可）
+function doCancelByName(id) {
+  const input = document.getElementById(`cancelInput-${id}`);
+  const msgEl = document.getElementById(`msg-${id}`);
+  const name  = (input ? input.value : '').trim();
+  if (!name) { showMsg(msgEl, '取り消す名前を入力してください', 'err'); return; }
+  const list = fbState.entries[id] || [];
+  const idx  = list.indexOf(name);
+  if (idx === -1) { showMsg(msgEl, `「${name}」のエントリーは見つかりません`, 'err'); return; }
+  confirmRemoveEntry(id, idx, '取り消し', () => clearMyEntry(id));
+}
 
 function showMsg(el, text, type) {
   if (!el) return;
