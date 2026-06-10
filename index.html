@@ -23,8 +23,8 @@
 
   <div class="sidebar-admin">
     <span class="header-admin-status" id="headerStatus" hidden>管理者としてログイン中</span>
-    <p class="header-pass">管理者パスワード：<code id="headerPass"></code></p>
     <div class="admin-login" id="adminLoginBox" style="display:none">
+      <p class="header-pass">PASS：社員番号(半角大文字)</p>
       <div class="pass-field">
         <input type="password" id="adminPass" placeholder="パスワード"
                onkeydown="if(event.key==='Enter') adminLogin()" />

@@ -24,7 +24,7 @@ const WORKS = [
   { id: 'w5', title: 'ダークユールに贖いを',        defaultCat: '複数回経験済み', players: '7〜9名', time: '約180分', capacity: 9, author: 'Group SNE', tags: ['Level★★★', '吸血鬼', 'ロールプレイ', 'GM不要'] },
 ];
 
-const ADMIN_PASS = 'mystery'; // ← パスワードをここで変更
+const ADMIN_PASS = ['UC1022', 'UC1257']; // ← 管理者の社員番号をここで変更（複数可）
 
 // ── Firebase 状態（リアルタイム同期） ────────────────────
 let fbState = { entries: {}, categories: null, workcats: {}, workinfo: {}, deleted: [], customWorks: {}, workOrder: [] };
@@ -530,7 +530,7 @@ function togglePassVisible() {
 }
 
 function adminLogin() {
-  if (document.getElementById('adminPass').value !== ADMIN_PASS) {
+  if (!ADMIN_PASS.includes(document.getElementById('adminPass').value)) {
     document.getElementById('adminErr').textContent = 'パスワードが違います'; return;
   }
   document.getElementById('adminErr').textContent = '';
@@ -957,4 +957,3 @@ function safeUrl(u) {
 }
 
 // ── 初期化 ────────────────────────────────────────────────
-document.getElementById('headerPass').textContent = ADMIN_PASS;
