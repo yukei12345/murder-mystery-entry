@@ -232,7 +232,7 @@
       transition: border-color 0.15s, box-shadow 0.15s;
     }
     .search-bar:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-    .search-icon { font-size: 0.95rem; line-height: 1; opacity: 0.7; }
+    .search-icon { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; opacity: 0.9; display: block; }
     .search-input {
       flex: 1; min-width: 0; border: none; background: transparent;
       font-family: inherit; font-size: 16px; color: var(--text); outline: none;
