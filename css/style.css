@@ -218,8 +218,8 @@
     .category-group { margin-bottom: 2.5rem; }
     .category-heading { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
     .category-heading-label {
-      font-size: 0.8rem; letter-spacing: 0.08em; color: var(--text); font-weight: 700;
-      white-space: nowrap; padding-left: 0.6rem; border-left: 3px solid var(--accent);
+      font-size: 1.15rem; letter-spacing: 0.04em; color: var(--text); font-weight: 700;
+      white-space: nowrap; padding-left: 0.7rem; border-left: 4px solid var(--accent);
     }
     .category-heading-line { flex: 1; height: 1px; background: var(--border); }
 
