@@ -545,6 +545,7 @@ async function adminLogin() {
 }
 
 function adminLogout() {
+  window.scrollTo(0, 0);
   isAdmin = false;
   adminSearch = '';
   const asi = document.getElementById('adminSearchInput'); if (asi) asi.value = '';
@@ -562,6 +563,7 @@ function adminLogout() {
 }
 
 function showAdminUI() {
+  window.scrollTo(0, 0);
   document.getElementById('adminLoginBox').style.display = 'none';
   document.getElementById('publicView').style.display = 'none';
   document.getElementById('adminPanel').classList.add('open');

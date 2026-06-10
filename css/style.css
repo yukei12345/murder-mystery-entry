@@ -37,7 +37,7 @@
     .app-shell { display: flex; align-items: flex-start; min-height: 100vh; }
     .sidebar {
       width: 550px; flex-shrink: 0;
-      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto; scrollbar-gutter: stable;
       display: flex; flex-direction: column;
     }
     .main-col { flex: 1; min-width: 0; }
