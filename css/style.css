@@ -711,16 +711,9 @@
       main { padding: 1.5rem 0.9rem 4rem; }
       .filter-bar { gap: 0.4rem; margin-bottom: 1.5rem; }
       .filter-chip { padding: 0.35rem 0.8rem; font-size: 0.75rem; }
-      /* SP：入れ子を解除して全セクションを並べ替え可能に
-         並び順：作品名→作者&URL→サムネイル→PLAYERS/TIME/PRICE→開催情報→タグ→エントリー */
+      /* SP：2カラムの入れ子を解除して全幅で縦積み（DOM順のまま）
+         作品名→作者&URL→サムネイル→PLAYERS/TIME/PRICE→開催情報→タグ→エントリー */
       .work-columns, .work-detail-col { display: contents; }
-      .work-header    { order: 1; }
-      .work-submeta   { order: 2; border-top: none; }
-      .work-thumb-col { order: 3; }
-      .work-picto     { order: 4; }
-      .work-schedule  { order: 5; }
-      .work-tags      { order: 6; }
-      .work-bottom    { order: 7; }
       .work-thumb-col { width: 100%; align-self: auto; border-right: none; border-bottom: 1px solid var(--border); }
       .work-thumb-col img { width: 100%; height: auto; }
       .work-no-image { min-height: 80px; }

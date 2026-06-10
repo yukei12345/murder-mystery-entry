@@ -323,15 +323,15 @@ function renderWork(w, entries) {
         <span class="${badgeClass}">${badge}</span>
         ${statusBadge}
       </div>
+      ${(info.author || urlLink) ? `
+      <div class="work-submeta">
+        ${info.author ? `<span class="info-item"><span class="sr-only">作者</span>${ICON.author} ${esc(info.author)}</span>` : ''}
+        ${(info.author && urlLink) ? `<span class="info-sep" aria-hidden="true">·</span>` : ''}
+        ${urlLink}
+      </div>` : ''}
       <div class="work-columns">
         <div class="work-thumb-col">${thumbHtml}</div>
         <div class="work-detail-col">
-          ${(info.author || urlLink) ? `
-          <div class="work-submeta">
-            ${info.author ? `<span class="info-item"><span class="sr-only">作者</span>${ICON.author} ${esc(info.author)}</span>` : ''}
-            ${(info.author && urlLink) ? `<span class="info-sep" aria-hidden="true">·</span>` : ''}
-            ${urlLink}
-          </div>` : ''}
           <div class="work-picto">
             <div class="picto-item">
               <span class="sr-only">参加人数</span>${ICON.person}
