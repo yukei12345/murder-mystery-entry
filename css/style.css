@@ -307,9 +307,9 @@
     }
     /* 公開ビュー：ステータスバッジだけ右へ逃がす */
     .work:not(.work-admin) .work-header .status-badge { margin-left: auto; }
-    /* 管理モード：操作ボタンを右へ。狭い時は折り返す */
+    /* 管理モード：タイトルが長い時は定員バッジを折り返す */
     .work-admin .work-header { flex-wrap: wrap; row-gap: 0.4rem; }
-    .work-admin .work-header .admin-card-actions { margin-left: auto; }
+    .work-admin .work-header .work-title { flex: 1 1 auto; min-width: 0; }
     .work-header-left { display: flex; align-items: center; gap: 0.25rem; flex: 1; min-width: 0; }
     .work-title { font-weight: 700; font-size: 1.12rem; letter-spacing: 0.02em; color: var(--text); }
     .work-badge {
@@ -635,7 +635,13 @@
 
     /* ── Admin card list ── */
     .admin-list { display: flex; flex-direction: column; gap: 0.75rem; }
-    .admin-card-actions { display: flex; gap: 0.35rem; margin-left: auto; flex-shrink: 0; }
+    /* 管理カードの操作ボタンはカード下部のアクションバーに配置 */
+    .admin-card-footer {
+      display: flex; gap: 0.5rem; padding: 0.65rem 1rem;
+      border-top: 1px solid var(--border); background: var(--surface2);
+      border-radius: 0 0 12px 12px;
+    }
+    .admin-card-footer .btn-xs { flex: 1 1 0; padding: 0.5rem 0.6rem; }
 
     /* ── Edit modal ── */
     .edit-modal-overlay {
@@ -703,9 +709,9 @@
       .pass-field { flex: 1 1 100%; }
       .pass-field input { width: 100%; }
       .admin-login > .btn { width: 100%; }
-      /* 管理カードの操作ボタン（SP） */
-      .admin-card-actions { gap: 0.3rem; }
-      .admin-card-actions .btn-xs { padding: 0.28rem 0.55rem; font-size: 0.7rem; }
+      /* 管理カードの操作ボタン（SP）：下部アクションバーで全幅2分割 */
+      .admin-card-footer { padding: 0.6rem 0.8rem; }
+      .admin-card-footer .btn-xs { padding: 0.6rem 0.5rem; font-size: 0.78rem; }
 
       /* edit modal */
       .edit-modal-overlay { padding: 0.75rem 0.75rem 2rem; }

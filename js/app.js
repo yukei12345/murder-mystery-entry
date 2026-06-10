@@ -347,7 +347,7 @@ function renderWork(w, entries, opts = {}) {
     ? `<span class="admin-drag-handle" title="ドラッグして並び替え" aria-hidden="true" onmousedown="this.closest('.work').draggable=true" onmouseup="this.closest('.work').draggable=false">${DRAG_HANDLE_SVG}</span>`
     : '';
   const adminActions = admin
-    ? `<div class="admin-card-actions"><button class="btn-xs btn-save" onclick="openEditModal('${w.id}')">✏ 編集</button>${isDone ? `<button class="btn-xs btn-muted" onclick="askRerunWork('${w.id}')">🔄 再募集する</button>` : ''}<button class="btn-xs btn-del" onclick="askDeleteWork('${w.id}')">削除</button></div>`
+    ? `<div class="admin-card-footer"><button class="btn-xs btn-save" onclick="openEditModal('${w.id}')">✏ 編集</button>${isDone ? `<button class="btn-xs btn-muted" onclick="askRerunWork('${w.id}')">🔄 再募集する</button>` : ''}<button class="btn-xs btn-del" onclick="askDeleteWork('${w.id}')">🗑 削除</button></div>`
     : '';
   const dragAttrs = admin
     ? `draggable="false" ondragstart="onAdminDragStart(event,'${w.id}')" ondragover="onAdminDragOver(event)" ondragleave="onAdminDragLeave(event)" ondrop="onAdminDrop(event,'${w.id}')" ondragend="onAdminDragEnd(event)"`
@@ -374,7 +374,6 @@ function renderWork(w, entries, opts = {}) {
         <span class="work-title">${esc(info.title)}</span>
         <span class="${badgeClass}">${badge}</span>
         ${statusBadge}
-        ${adminActions}
       </div>
       ${(info.author || urlLink) ? `
       <div class="work-submeta">
@@ -416,6 +415,7 @@ function renderWork(w, entries, opts = {}) {
           </div>
         </div>
       </div>
+      ${adminActions}
     </div>`;
 }
 
