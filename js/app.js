@@ -326,6 +326,12 @@ function renderWork(w, entries) {
       <div class="work-columns">
         <div class="work-thumb-col">${thumbHtml}</div>
         <div class="work-detail-col">
+          ${(info.author || urlLink) ? `
+          <div class="work-submeta">
+            ${info.author ? `<span class="info-item"><span class="sr-only">作者</span>${ICON.author} ${esc(info.author)}</span>` : ''}
+            ${(info.author && urlLink) ? `<span class="info-sep" aria-hidden="true">·</span>` : ''}
+            ${urlLink}
+          </div>` : ''}
           <div class="work-picto">
             <div class="picto-item">
               <span class="sr-only">参加人数</span>${ICON.person}
@@ -346,12 +352,6 @@ function renderWork(w, entries) {
               <span class="picto-value">${esc(info.price)}</span>
             </div>` : ''}
           </div>
-          ${(info.author || urlLink) ? `
-          <div class="work-submeta">
-            ${info.author ? `<span class="info-item"><span class="sr-only">作者</span>${ICON.author} ${esc(info.author)}</span>` : ''}
-            ${(info.author && urlLink) ? `<span class="info-sep" aria-hidden="true">·</span>` : ''}
-            ${urlLink}
-          </div>` : ''}
           ${scheduleBar}
           ${tagHtml ? `<div class="work-tags">${tagHtml}</div>` : ''}
           <div class="work-bottom">
