@@ -43,7 +43,7 @@
     /* ── App shell（PC：サイドバー＋メイン） ── */
     .app-shell { display: flex; align-items: flex-start; min-height: 100vh; }
     .sidebar {
-      width: 300px; flex-shrink: 0;
+      width: 550px; flex-shrink: 0;
       position: sticky; top: 0; height: 100vh; overflow-y: auto;
     }
     .main-col { flex: 1; min-width: 0; }
@@ -174,7 +174,7 @@
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
     /* ── Main ── */
-    main { max-width: 780px; margin: 0 auto; padding: 2.5rem 2rem 5rem; }
+    main { max-width: 980px; margin: 0 auto; padding: 2.5rem 2rem 5rem; }
 
     /* ── Filter bar ── */
     .filter-bar {
@@ -295,6 +295,27 @@
     .info-item { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
     .info-item svg { flex-shrink: 0; color: var(--accent); opacity: 0.9; }
     .info-sep { color: var(--border-strong); font-size: 0.7rem; flex-shrink: 0; }
+
+    /* ── ピクトグラム帯（人数・時間・金額） ── */
+    .work-picto {
+      display: flex; align-items: stretch; gap: 0.5rem;
+      padding: 0.95rem 1.25rem; border-bottom: 1px solid var(--border); background: var(--surface2);
+    }
+    .picto-item {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; align-items: center; gap: 0.3rem; text-align: center;
+    }
+    .picto-item svg { width: 26px; height: 26px; color: var(--accent); }
+    .picto-label {
+      font-size: 0.6rem; letter-spacing: 0.12em; font-weight: 700;
+      color: var(--muted); text-transform: uppercase;
+    }
+    .picto-value { font-size: 0.92rem; font-weight: 700; color: var(--text); line-height: 1.35; }
+    .picto-sep { width: 1px; background: var(--border); align-self: stretch; flex-shrink: 0; }
+    .work-submeta {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+      padding: 0.55rem 1.25rem; border-bottom: 1px solid var(--border);
+    }
 
     .work-tags {
       display: flex; flex-wrap: wrap; gap: 0.35rem;
@@ -606,6 +627,11 @@
     .edit-modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; }
 
     /* ── レスポンシブ ── */
+    /* 中間サイズ：サイドバーを縮めてコンテンツを確保 */
+    @media (max-width: 1100px) {
+      .sidebar { width: 340px; }
+    }
+
     /* サイドバー → 縦積み（タブレット以下） */
     @media (max-width: 768px) {
       .app-shell { flex-direction: column; }
@@ -628,7 +654,9 @@
       .work-thumb-col img { width: 100%; height: 200px; object-fit: contain; }
       .work-no-image { min-height: 80px; }
       .work-header { padding: 0.8rem 1rem 0.65rem; }
-      .work-info, .work-tags, .work-bottom { padding-left: 1rem; padding-right: 1rem; }
+      .work-info, .work-tags, .work-bottom, .work-picto, .work-submeta { padding-left: 1rem; padding-right: 1rem; }
+      .work-picto { padding-top: 0.8rem; padding-bottom: 0.8rem; }
+      .picto-value { font-size: 0.88rem; }
       .work-title { font-size: 0.95rem; }
       .entry-form .btn { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
       .admin-login { flex-wrap: wrap; }
@@ -1117,14 +1145,32 @@ function renderWork(w, entries) {
       <div class="work-columns">
         <div class="work-thumb-col">${thumbHtml}</div>
         <div class="work-detail-col">
-          <div class="work-info">
-            <span class="info-item"><span class="sr-only">参加人数</span>${ICON.person} ${esc(info.players)}</span>
-            <span class="info-sep" aria-hidden="true">·</span>
-            <span class="info-item"><span class="sr-only">所要時間</span>${ICON.clock} ${esc(info.time)}</span>
-            ${info.author ? `<span class="info-sep" aria-hidden="true">·</span><span class="info-item"><span class="sr-only">作者</span>${ICON.author} ${esc(info.author)}</span>` : ''}
-            ${info.price  ? `<span class="info-sep" aria-hidden="true">·</span><span class="info-item"><span class="sr-only">金額</span>${ICON.price} ${esc(info.price)}</span>` : ''}
-            ${urlLink ? `<span class="info-sep" aria-hidden="true">·</span>${urlLink}` : ''}
+          <div class="work-picto">
+            <div class="picto-item">
+              <span class="sr-only">参加人数</span>${ICON.person}
+              <span class="picto-label" aria-hidden="true">Players</span>
+              <span class="picto-value">${esc(info.players)}</span>
+            </div>
+            <div class="picto-sep" aria-hidden="true"></div>
+            <div class="picto-item">
+              <span class="sr-only">所要時間</span>${ICON.clock}
+              <span class="picto-label" aria-hidden="true">Time</span>
+              <span class="picto-value">${esc(info.time)}</span>
+            </div>
+            ${info.price ? `
+            <div class="picto-sep" aria-hidden="true"></div>
+            <div class="picto-item">
+              <span class="sr-only">金額</span>${ICON.price}
+              <span class="picto-label" aria-hidden="true">Price</span>
+              <span class="picto-value">${esc(info.price)}</span>
+            </div>` : ''}
           </div>
+          ${(info.author || urlLink) ? `
+          <div class="work-submeta">
+            ${info.author ? `<span class="info-item"><span class="sr-only">作者</span>${ICON.author} ${esc(info.author)}</span>` : ''}
+            ${(info.author && urlLink) ? `<span class="info-sep" aria-hidden="true">·</span>` : ''}
+            ${urlLink}
+          </div>` : ''}
           ${scheduleBar}
           ${tagHtml ? `<div class="work-tags">${tagHtml}</div>` : ''}
           <div class="work-bottom">
