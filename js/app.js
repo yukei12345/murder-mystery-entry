@@ -347,9 +347,10 @@ function renderWork(w, entries) {
             ${info.price ? `
             <div class="picto-sep" aria-hidden="true"></div>
             <div class="picto-item">
-              <span class="sr-only">金額</span>${ICON.price}
-              <span class="picto-label" aria-hidden="true">Price</span>
+              <span class="sr-only">料金（参加者全員での総額）</span>${ICON.price}
+              <span class="picto-label" aria-hidden="true">Total</span>
               <span class="picto-value">${esc(info.price)}</span>
+              <span class="picto-note" aria-hidden="true">全員で</span>
             </div>` : ''}
           </div>
           ${scheduleBar}
