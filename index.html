@@ -45,6 +45,7 @@
     .sidebar {
       width: 550px; flex-shrink: 0;
       position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      display: flex; flex-direction: column;
     }
     .main-col { flex: 1; min-width: 0; }
 
@@ -56,7 +57,7 @@
       text-align: center;
       position: relative;
       overflow: hidden;
-      height: 100%;
+      flex: 1 0 auto;
       display: flex; flex-direction: column; justify-content: flex-start;
     }
     /* 装飾ライン（上下） */
@@ -278,13 +279,12 @@
     .work { display: flex; flex-direction: column; }
     .work-columns { display: flex; flex-direction: row; flex: 1; }
     .work-thumb-col {
-      width: 200px; flex-shrink: 0;
+      width: 200px; flex-shrink: 0; align-self: flex-start;
       background: #111; border-right: 1px solid var(--border);
-      overflow: hidden; display: flex; align-items: center; justify-content: center;
+      overflow: hidden; display: flex;
     }
     .work-thumb-col img {
-      width: 100%; height: auto;
-      object-fit: contain; display: block;
+      width: 100%; height: auto; display: block;
     }
     .work-no-image {
       width: 100%; min-height: 130px;
@@ -652,7 +652,7 @@
     @media (max-width: 768px) {
       .app-shell { flex-direction: column; }
       .sidebar { width: 100%; position: static; height: auto; overflow: visible; }
-      header { height: auto; padding: 3rem 1.25rem 1.75rem; }
+      header { flex: none; height: auto; padding: 3rem 1.25rem 1.75rem; }
       main { padding: 2rem 1.25rem 4rem; }
     }
 
@@ -666,8 +666,8 @@
       .filter-chip { padding: 0.35rem 0.8rem; font-size: 0.75rem; }
       /* SP：画像とコンテンツを縦積み */
       .work-columns { flex-direction: column; }
-      .work-thumb-col { width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
-      .work-thumb-col img { width: 100%; height: 200px; object-fit: contain; }
+      .work-thumb-col { width: 100%; align-self: auto; border-right: none; border-bottom: 1px solid var(--border); }
+      .work-thumb-col img { width: 100%; height: auto; }
       .work-no-image { min-height: 80px; }
       .work-header { padding: 0.8rem 1rem 0.65rem; }
       .work-info, .work-tags, .work-bottom, .work-picto, .work-submeta { padding-left: 1rem; padding-right: 1rem; }
