@@ -558,7 +558,6 @@ function renderAdmin() {
          ondragleave="onAdminDragLeave(event)"
          ondrop="onAdminDrop(event,'${w.id}')"
          ondragend="onAdminDragEnd(event)">
-      ${info.thumbnail ? `<div class="work-thumbnail"><img src="${esc(info.thumbnail)}" alt="" loading="lazy" style="max-height:140px" onerror="this.closest('.work-thumbnail').style.display='none'" /></div>` : ''}
       <div class="admin-card-header">
         <span class="admin-drag-handle" title="ドラッグして並び替え" aria-hidden="true"
               onmousedown="this.closest('.admin-card').draggable=true"
@@ -572,12 +571,13 @@ function renderAdmin() {
           <button class="btn-xs btn-del"  onclick="askDeleteWork('${w.id}')">削除</button>
         </div>
       </div>
+      ${info.thumbnail ? `<div class="work-thumbnail"><img src="${esc(info.thumbnail)}" alt="" loading="lazy" style="max-height:140px" onerror="this.closest('.work-thumbnail').style.display='none'" /></div>` : ''}
       <div class="admin-card-body">
         <div class="admin-card-info">
           ${ICON.person} ${esc(info.players)}
           ${info.time   ? `<span class="info-sep">·</span>${ICON.clock}  ${esc(info.time)}`   : ''}
-          ${info.author ? `<span class="info-sep">·</span>${ICON.author} ${esc(info.author)}` : ''}
           ${info.price  ? `<span class="info-sep">·</span>${ICON.price}  ${esc(info.price)}`  : ''}
+          ${info.author ? `<span class="info-sep">·</span>${ICON.author} ${esc(info.author)}` : ''}
         </div>
         ${scheduleInfo}
         ${tagHtml ? `<div class="admin-card-tags">${tagHtml}</div>` : ''}
@@ -629,6 +629,7 @@ function openEditModal(id) {
   editModalWorkId = id;
 
   document.getElementById('editModalHeading').textContent = `「${info.title}」を編集`;
+  document.getElementById('editModalSaveBtn').textContent = '保存する';
   document.getElementById('editModal-title').value       = info.title;
   document.getElementById('editModal-players').value     = info.players;
   document.getElementById('editModal-capacity').value    = info.capacity;
@@ -655,8 +656,9 @@ function closeEditModal() {
 }
 
 function saveEditModal() {
-  const id = editModalWorkId;
-  if (!id) return;
+  const isAdd = (editModalWorkId === null);
+  const id    = isAdd ? ('cw_' + Date.now()) : editModalWorkId;
+
   const title    = document.getElementById('editModal-title').value.trim();
   const players  = document.getElementById('editModal-players').value.trim();
   const capacity = Math.max(0, parseInt(document.getElementById('editModal-capacity').value, 10) || 0);
@@ -673,8 +675,14 @@ function saveEditModal() {
 
   if (!title) { showMsg(msgEl, '作品名は必須です', 'err'); return; }
 
+  const info = { title, players, time, author, price, tags, capacity, status, scheduledAt, venue, url, thumbnail };
+
   const commit = () => {
-    saveInfo(id, { title, players, time, author, price, tags, capacity, status, scheduledAt, venue, url, thumbnail });
+    if (isAdd) {
+      fbSet(`customWorks/${id}`, { title, author, price, players, time, tags, capacity, thumbnail, url });
+    }
+    fbSet(`workinfo/${id}`, info);
+    adminTab = status;   // 保存先のタブを表示
     closeEditModal();
   };
 
@@ -885,38 +893,29 @@ function deleteWork(id) {
   }
 }
 
-// ── 新規作品追加 ──────────────────────────────────────────
+// ── 新規作品追加（編集モーダルを「追加モード」で開く） ──────
 function openAddModal() {
-  ['new-title','new-author','new-price','new-players','new-time','new-tags'].forEach(k => document.getElementById(k).value = '');
-  document.getElementById('new-capacity').value = '0';
-  document.getElementById('msg-new-work').textContent = '';
-  document.getElementById('addModalOverlay').classList.add('open');
-  document.getElementById('new-title').focus();
-}
-
-function closeAddModal() {
-  document.getElementById('addModalOverlay').classList.remove('open');
-}
-
-function addNewWork() {
-  const title    = document.getElementById('new-title').value.trim();
-  const author   = document.getElementById('new-author').value.trim();
-  const price    = document.getElementById('new-price').value.trim();
-  const players  = document.getElementById('new-players').value.trim();
-  const time     = document.getElementById('new-time').value.trim();
-  const tags     = document.getElementById('new-tags').value.split(',').map(t => t.trim()).filter(Boolean);
-  const capacity = Math.max(0, parseInt(document.getElementById('new-capacity').value, 10) || 0);
-  const msgEl    = document.getElementById('msg-new-work');
-
-  if (!title) { showMsg(msgEl, '作品名は必須です', 'err'); return; }
-
-  const id = 'cw_' + Date.now();
-  const newWork = { title, author, price, players, time, tags, capacity };
-
-  fbSet(`customWorks/${id}`, newWork).then(() => {
-    adminTab = 'recruiting';   // 追加した作品（募集中）が見えるように
-    closeAddModal();
-  });
+  editModalWorkId = null;
+  document.getElementById('editModalHeading').textContent = '新規作品を追加';
+  document.getElementById('editModalSaveBtn').textContent = '追加する';
+  document.getElementById('editModal-title').value       = '';
+  document.getElementById('editModal-players').value     = '';
+  document.getElementById('editModal-capacity').value    = 0;
+  document.getElementById('editModal-time').value        = '';
+  document.getElementById('editModal-author').value      = '';
+  document.getElementById('editModal-price').value       = '';
+  document.getElementById('editModal-tags').value        = '';
+  document.getElementById('editModal-status').value      = 'recruiting';
+  document.getElementById('editModal-scheduledAt').value = '';
+  document.getElementById('editModal-venue').value       = '';
+  document.getElementById('editModal-url').value         = '';
+  document.getElementById('editModal-thumbnail').value   = '';
+  document.getElementById('editModal-thumbnail-file').value  = '';
+  document.getElementById('editModal-upload-status').textContent = '';
+  document.getElementById('editModal-msg').textContent   = '';
+  updateThumbnailPreview('');
+  document.getElementById('editModalOverlay').classList.add('open');
+  document.getElementById('editModal-title').focus();
 }
 
 // ── ドラッグ&ドロップ並び替え ────────────────────────────

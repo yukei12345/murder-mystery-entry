@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=10" />
+  <link rel="stylesheet" href="css/style.css?v=11" />
 </head>
 <body>
 
@@ -118,28 +118,7 @@
     <p class="msg" id="editModal-msg" role="status" aria-live="polite"></p>
     <div class="edit-modal-actions">
       <button class="btn btn-ghost" onclick="closeEditModal()">キャンセル</button>
-      <button class="btn btn-primary" onclick="saveEditModal()">保存する</button>
-    </div>
-  </div>
-</div>
-
-<!-- 新規作品追加モーダル -->
-<div class="edit-modal-overlay" id="addModalOverlay" role="dialog" aria-modal="true" aria-labelledby="addModalHeading">
-  <div class="edit-modal-dialog">
-    <h2 class="edit-modal-title" id="addModalHeading">新規作品を追加</h2>
-    <div class="edit-modal-fields">
-      <div class="field-row"><span class="field-label">作品名</span><input class="a-input fill" id="new-title"    maxlength="40" placeholder="作品名（必須）" /></div>
-      <div class="field-row"><span class="field-label">作者</span>  <input class="a-input fill" id="new-author"   maxlength="40" placeholder="作者・サークル名" /></div>
-      <div class="field-row"><span class="field-label">金額</span>  <input class="a-input fill" id="new-price"    maxlength="20" placeholder="例：2,000円" /></div>
-      <div class="field-row"><span class="field-label">人数</span>  <input class="a-input fill" id="new-players"  maxlength="20" placeholder="例：4〜6名" /></div>
-      <div class="field-row"><span class="field-label">定員</span>  <input class="a-input" id="new-capacity" type="number" min="0" max="99" value="0" style="width:5rem" /><span class="field-hint">名（0で無制限）</span></div>
-      <div class="field-row"><span class="field-label">時間</span>  <input class="a-input fill" id="new-time"     maxlength="20" placeholder="例：約120分" /></div>
-      <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="new-tags"     maxlength="100" placeholder="カンマ区切りで入力（旧カテゴリもタグで）" /></div>
-    </div>
-    <p class="msg" id="msg-new-work" role="status" aria-live="polite"></p>
-    <div class="edit-modal-actions">
-      <button class="btn btn-ghost" onclick="closeAddModal()">キャンセル</button>
-      <button class="btn btn-primary" onclick="addNewWork()">追加する</button>
+      <button class="btn btn-primary" id="editModalSaveBtn" onclick="saveEditModal()">保存する</button>
     </div>
   </div>
 </div>
@@ -148,6 +127,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-<script src="js/app.js?v=10"></script>
+<script src="js/app.js?v=11"></script>
 </body>
 </html>
