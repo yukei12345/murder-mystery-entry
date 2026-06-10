@@ -292,8 +292,10 @@
 
     .work-header {
       padding: 1rem 1.4rem 0.85rem 1rem; border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+      display: flex; align-items: center; justify-content: flex-start; gap: 0.6rem;
     }
+    /* 開催確定・済みのステータスバッジだけ右へ逃がす */
+    .work-header .status-badge { margin-left: auto; }
     .work-header-left { display: flex; align-items: center; gap: 0.25rem; flex: 1; min-width: 0; }
     .work-title { font-weight: 700; font-size: 1.12rem; letter-spacing: 0.02em; color: var(--text); }
     .work-badge {
