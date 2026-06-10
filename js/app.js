@@ -591,18 +591,7 @@ function renderAdmin() {
 
   document.getElementById('adminView').innerHTML = `
     <div class="admin-section">
-      <p class="admin-section-title">新規作品を追加</p>
-      <div class="field-row"><span class="field-label">作品名</span><input class="a-input fill" id="new-title"    placeholder="作品名（必須）" maxlength="40" /></div>
-      <div class="field-row"><span class="field-label">作者</span>  <input class="a-input fill" id="new-author"   placeholder="作者・サークル名" maxlength="40" /></div>
-      <div class="field-row"><span class="field-label">金額</span>  <input class="a-input fill" id="new-price"    placeholder="例：2,000円" maxlength="20" /></div>
-      <div class="field-row"><span class="field-label">人数</span>  <input class="a-input fill" id="new-players"  placeholder="例：4〜6名" maxlength="20" /></div>
-      <div class="field-row"><span class="field-label">定員</span>  <input class="a-input" id="new-capacity" type="number" min="0" max="99" value="0" style="width:5rem" /><span class="field-hint">名（0で無制限）</span></div>
-      <div class="field-row"><span class="field-label">時間</span>  <input class="a-input fill" id="new-time"     placeholder="例：約120分" maxlength="20" /></div>
-      <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="new-tags"     placeholder="カンマ区切りで入力（旧カテゴリもタグで）" maxlength="100" /></div>
-      <div class="field-row" style="margin-top:0.4rem">
-        <button class="btn-xs btn-save" onclick="addNewWork()">作品を追加</button>
-      </div>
-      <p class="msg" id="msg-new-work" role="status" aria-live="polite"></p>
+      <button class="btn btn-primary" style="width:100%" onclick="openAddModal()">＋ 新規作品を追加</button>
     </div>
     <div class="admin-section">
       <p class="admin-section-title">作品・エントリー管理</p>
@@ -897,6 +886,18 @@ function deleteWork(id) {
 }
 
 // ── 新規作品追加 ──────────────────────────────────────────
+function openAddModal() {
+  ['new-title','new-author','new-price','new-players','new-time','new-tags'].forEach(k => document.getElementById(k).value = '');
+  document.getElementById('new-capacity').value = '0';
+  document.getElementById('msg-new-work').textContent = '';
+  document.getElementById('addModalOverlay').classList.add('open');
+  document.getElementById('new-title').focus();
+}
+
+function closeAddModal() {
+  document.getElementById('addModalOverlay').classList.remove('open');
+}
+
 function addNewWork() {
   const title    = document.getElementById('new-title').value.trim();
   const author   = document.getElementById('new-author').value.trim();
@@ -913,10 +914,8 @@ function addNewWork() {
   const newWork = { title, author, price, players, time, tags, capacity };
 
   fbSet(`customWorks/${id}`, newWork).then(() => {
-    // フォームをリセット
-    ['new-title','new-author','new-price','new-players','new-time','new-tags'].forEach(k => document.getElementById(k).value = '');
-    document.getElementById('new-capacity').value = '0';
-    showMsg(msgEl, `「${title}」を追加しました`, 'ok');
+    adminTab = 'recruiting';   // 追加した作品（募集中）が見えるように
+    closeAddModal();
   });
 }
 
