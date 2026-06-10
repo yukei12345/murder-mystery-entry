@@ -125,23 +125,43 @@ function saveInfo(id, patch) {
   return fbSet(`workinfo/${id}`, { ...getInfo(w), ...patch });
 }
 
-// ── 自分のエントリーをブラウザに記憶 ─────────────────────
+// ── 自分のエントリーをブラウザに記憶（1作品に複数名対応） ──
+function saveMyEntries(d) { localStorage.setItem('mm_my_entries', JSON.stringify(d)); }
 function getMyEntries() {
-  try { return JSON.parse(localStorage.getItem('mm_my_entries') || '{}'); } catch { return {}; }
+  try {
+    const d = JSON.parse(localStorage.getItem('mm_my_entries') || '{}');
+    // 旧形式（1作品=1文字列）を配列へ正規化
+    Object.keys(d).forEach(k => { if (!Array.isArray(d[k])) d[k] = d[k] ? [d[k]] : []; });
+    return d;
+  } catch { return {}; }
 }
 function setMyEntry(workId, name) {
-  const d = getMyEntries(); d[workId] = name;
-  localStorage.setItem('mm_my_entries', JSON.stringify(d));
+  const d = getMyEntries();
+  const arr = d[workId] || [];
+  if (!arr.includes(name)) arr.push(name);
+  d[workId] = arr;
+  saveMyEntries(d);
 }
-function clearMyEntry(workId) {
-  const d = getMyEntries(); delete d[workId];
-  localStorage.setItem('mm_my_entries', JSON.stringify(d));
+function clearMyEntry(workId, name) {
+  const d = getMyEntries();
+  if (name === undefined) {
+    delete d[workId];
+  } else if (d[workId]) {
+    d[workId] = d[workId].filter(n => n !== name);
+    if (!d[workId].length) delete d[workId];
+  }
+  saveMyEntries(d);
 }
-function getMyEntry(workId, entries) {
-  const name = getMyEntries()[workId];
-  if (!name) return null;
-  if (!entries.includes(name)) { clearMyEntry(workId); return null; }
-  return name;
+// 現在のエントリーに残っている自分の名前一覧を返す（消えた名前は掃除）
+function getMyNames(workId, entries) {
+  const names = getMyEntries()[workId] || [];
+  const valid = names.filter(n => entries.includes(n));
+  if (valid.length !== names.length) {
+    const d = getMyEntries();
+    if (valid.length) d[workId] = valid; else delete d[workId];
+    saveMyEntries(d);
+  }
+  return valid;
 }
 
 // ── SVG アイコン ──────────────────────────────────────────
@@ -201,7 +221,8 @@ function renderFilterBar() {
 
   const matchesStatus = w => {
     const s = getInfo(w).status;
-    return showArchived ? s !== 'recruiting' : s === 'recruiting';
+    // 入手前（prepurchase）は公開ビューに表示しない
+    return showArchived ? ['confirmed','done'].includes(s) : s === 'recruiting';
   };
 
   const playerCountOf = cap =>
@@ -237,13 +258,14 @@ function render() {
 
   const filtered = works.filter(w => {
     const s = getInfo(w).status;
+    // 入手前（prepurchase）は公開ビューに表示しない
     return matchesPlayerFilter(w) && matchesSearch(w) && (
-      showArchived ? s !== 'recruiting' : s === 'recruiting'
+      showArchived ? ['confirmed','done'].includes(s) : s === 'recruiting'
     );
   });
 
   document.getElementById('works').innerHTML = filtered.length
-    ? `<div class="works">${filtered.map(w => renderWork(w, entries[w.id] || [])).join('')}</div>`
+    ? `<p class="works-count">${filtered.length}件の作品を表示中</p><div class="works">${filtered.map(w => renderWork(w, entries[w.id] || [])).join('')}</div>`
     : '<p class="no-result">該当する作品がありません</p>';
 }
 
@@ -261,18 +283,22 @@ function renderWork(w, entries, opts = {}) {
   // エントリー一覧（管理＝全員＋削除×／公開＝自分のみ表示）
   let entriesLabel, chips;
   if (admin) {
-    entriesLabel = 'エントリー';
+    entriesLabel = 'エントリー情報';
     chips = entries.length
       ? entries.map((n, i) =>
           `<span class="entry-chip">${esc(n)}<button class="chip-remove" title="${esc(n)}を削除" aria-label="${esc(n)}を削除" onclick="removeEntry('${w.id}',${i})">×</button></span>`
         ).join('')
       : '<span class="entry-empty">エントリーなし</span>';
   } else {
-    const myName = getMyEntry(w.id, entries);
-    const myIdx  = myName ? entries.indexOf(myName) : -1;
-    entriesLabel = entries.length ? `エントリー済み: ${entries.length}名${myName ? '（あなたを含む）' : ''}` : '';
-    chips = myName
-      ? `<span class="entry-chip">${esc(myName)}<button class="chip-remove" title="エントリーを取り消す" aria-label="${esc(myName)} のエントリーを取り消す" onclick="removeOwnEntry('${w.id}',${myIdx})">×</button></span>`
+    const myNames = getMyNames(w.id, entries);
+    entriesLabel = entries.length
+      ? `エントリー情報: ${entries.length}名${myNames.length ? '（あなたを含む）' : ''}`
+      : 'エントリー情報';
+    chips = myNames.length
+      ? myNames.map(n => {
+          const idx = entries.indexOf(n);
+          return `<span class="entry-chip">${esc(n)}<button class="chip-remove" title="エントリーを取り消す" aria-label="${esc(n)} のエントリーを取り消す" onclick="removeOwnEntry('${w.id}',${idx})">×</button></span>`;
+        }).join('')
       : entries.length
         ? '<span class="entry-empty">名前は非公開です</span>'
         : '<span class="entry-empty">まだ誰もエントリーしていません</span>';
@@ -287,11 +313,13 @@ function renderWork(w, entries, opts = {}) {
   else              { badge = `${entries.length}名エントリー中`; }
 
   // ステータスバッジ
-  const statusBadge = isConfirmed
-    ? `<span class="status-badge status-confirmed">📅 開催確定</span>`
-    : isDone
-      ? `<span class="status-badge status-done">開催済み</span>`
-      : '';
+  const statusBadge = status === 'prepurchase'
+    ? `<span class="status-badge status-prepurchase">入手前</span>`
+    : isConfirmed
+      ? `<span class="status-badge status-confirmed">📅 開催確定</span>`
+      : isDone
+        ? `<span class="status-badge status-done">開催済み</span>`
+        : '';
 
   // 開催日時・場所バー（確定・済み時）
   const scheduleBar = (isConfirmed || isDone) && (info.scheduledAt || info.venue) ? `
@@ -449,7 +477,10 @@ function confirmRemoveEntry(id, index, label = '取り消し', afterConfirm = nu
   });
 }
 
-function removeOwnEntry(id, index) { confirmRemoveEntry(id, index, '取り消し', () => clearMyEntry(id)); }
+function removeOwnEntry(id, index) {
+  const name = (fbState.entries[id] || [])[index];
+  confirmRemoveEntry(id, index, '取り消し', () => { if (name !== undefined) clearMyEntry(id, name); });
+}
 function removeEntry(id, index)    { confirmRemoveEntry(id, index, '削除'); }
 
 function showMsg(el, text, type) {
@@ -543,11 +574,15 @@ function renderAdmin() {
   const entries = fbState.entries;
 
   // タブごとの件数（検索で絞り込み）
-  const tabCounts = { recruiting: 0, confirmed: 0, done: 0 };
+  const tabCounts = { prepurchase: 0, recruiting: 0, confirmed: 0, done: 0 };
   getWorks().forEach(w => { const s = getInfo(w).status; if (s in tabCounts && matchesAdminSearch(w)) tabCounts[s]++; });
 
   // タブ（固定コンテナへ描画）
   document.getElementById('adminTabs').innerHTML = `
+    <button class="admin-tab ${adminTab==='prepurchase'?'active':''}" role="tab"
+            aria-selected="${adminTab==='prepurchase'}" onclick="setAdminTab('prepurchase')">
+      入手前<span class="admin-tab-count">${tabCounts.prepurchase}</span>
+    </button>
     <button class="admin-tab ${adminTab==='recruiting'?'active':''}" role="tab"
             aria-selected="${adminTab==='recruiting'}" onclick="setAdminTab('recruiting')">
       募集中<span class="admin-tab-count">${tabCounts.recruiting}</span>
@@ -562,18 +597,17 @@ function renderAdmin() {
     </button>`;
 
   // カード一覧（固定の検索バーの下＝adminView）
-  const cards = getWorks()
-    .filter(w => getInfo(w).status === adminTab && matchesAdminSearch(w))
+  const filteredWorks = getWorks()
+    .filter(w => getInfo(w).status === adminTab && matchesAdminSearch(w));
+  const cards = filteredWorks
     .map(w => renderWork(w, entries[w.id] || [], { admin: true }))
     .join('');
 
   document.getElementById('adminView').innerHTML = `
+    ${filteredWorks.length ? `<p class="works-count">${filteredWorks.length}件の作品を表示中</p>` : ''}
     ${cards.length
       ? `<div class="admin-list">${cards}</div>`
-      : `<p style="color:var(--muted);font-size:0.85rem;padding:1.5rem 0;text-align:center">該当する作品はありません</p>`}
-    ${adminTab === 'recruiting'
-      ? `<button class="reset-btn" onclick="clearAll()">全エントリーをリセット</button>`
-      : ''}`;
+      : `<p style="color:var(--muted);font-size:0.85rem;padding:1.5rem 0;text-align:center">該当する作品はありません</p>`}`;
 }
 
 // ── 編集モーダル ───────────────────────────────────────────
@@ -780,16 +814,6 @@ document.getElementById('confirmModal').addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && document.getElementById('confirmModal').classList.contains('open')) closeConfirm();
 });
-
-// ── 全エントリーリセット ──────────────────────────────────
-function clearAll() {
-  openConfirm({
-    title: '全エントリーをリセット',
-    message: 'すべての作品のエントリーを削除します。<br>この操作は取り消せません。よろしいですか？',
-    okLabel: 'リセットする',
-    onConfirm: () => fbSet('entries', null),
-  });
-}
 
 // ── 再募集 ───────────────────────────────────────────────
 function askRerunWork(id) {

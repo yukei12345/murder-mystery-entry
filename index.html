@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=25" />
+  <link rel="stylesheet" href="css/style.css?v=27" />
 </head>
 <body>
 
@@ -48,7 +48,7 @@
 
 <div class="admin-panel" id="adminPanel">
   <div class="admin-panel-inner">
-    <button class="btn btn-primary" style="width:100%;margin-bottom:1.25rem" onclick="openAddModal()">＋ 新規作品を追加</button>
+    <button class="btn btn-primary btn-add-work" onclick="openAddModal()">＋ 新規作品を追加</button>
     <div class="admin-tabs" id="adminTabs" role="tablist"></div>
     <div class="search-bar">
       <img class="search-icon" src="img/search-icon.png" alt="" aria-hidden="true" />
@@ -89,7 +89,7 @@
   <div class="edit-modal-dialog">
     <h2 class="edit-modal-title" id="editModalHeading"></h2>
     <div class="edit-modal-fields">
-      <div class="field-row"><span class="field-label">作品名</span><input class="a-input fill" id="editModal-title"    maxlength="40" /></div>
+      <div class="field-row"><span class="field-label">作品名<span class="field-required" aria-hidden="true">*</span></span><input class="a-input fill" id="editModal-title"    maxlength="40" required aria-required="true" placeholder="必須" /></div>
       <div class="field-row"><span class="field-label">作者</span>  <input class="a-input fill" id="editModal-author"   maxlength="40" /></div>
       <div class="field-row"><span class="field-label">作品URL</span><input class="a-input fill" id="editModal-url" maxlength="500" placeholder="https://..." /></div>
       <div class="field-row" style="align-items:flex-start">
@@ -115,6 +115,7 @@
       <hr style="border:none;border-top:1px solid var(--border);margin:0.4rem 0" />
       <div class="field-row"><span class="field-label">状態</span>
         <select class="a-select" id="editModal-status">
+          <option value="prepurchase">入手前</option>
           <option value="recruiting">募集中</option>
           <option value="confirmed">開催確定</option>
           <option value="done">開催済み</option>
@@ -135,6 +136,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-<script src="js/app.js?v=25"></script>
+<script src="js/app.js?v=27"></script>
 </body>
 </html>
