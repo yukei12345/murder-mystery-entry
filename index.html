@@ -780,14 +780,6 @@
     <h2 class="edit-modal-title" id="editModalHeading"></h2>
     <div class="edit-modal-fields">
       <div class="field-row"><span class="field-label">作品名</span><input class="a-input fill" id="editModal-title"    maxlength="40" /></div>
-      <div class="field-row"><span class="field-label">人数</span>  <input class="a-input fill" id="editModal-players"  maxlength="20" placeholder="例：6〜8名" /></div>
-      <div class="field-row"><span class="field-label">定員</span>  <input class="a-input" id="editModal-capacity" type="number" min="0" max="99" style="width:5rem" /><span class="field-hint">名（0で無制限）</span></div>
-      <div class="field-row"><span class="field-label">時間</span>  <input class="a-input fill" id="editModal-time"     maxlength="20" placeholder="例：約120分" /></div>
-      <div class="field-row"><span class="field-label">作者</span>  <input class="a-input fill" id="editModal-author"   maxlength="40" /></div>
-      <div class="field-row"><span class="field-label">金額</span>  <input class="a-input fill" id="editModal-price"    maxlength="20" placeholder="例：2,000円" /></div>
-      <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="editModal-tags"      maxlength="100" placeholder="カンマ区切りで入力" /></div>
-      <div class="field-row"><span class="field-label">カテゴリ</span><select class="a-select" id="editModal-cat"></select></div>
-      <div class="field-row"><span class="field-label">作品URL</span><input class="a-input fill" id="editModal-url" maxlength="500" placeholder="https://..." /></div>
       <div class="field-row" style="align-items:flex-start">
         <span class="field-label" style="padding-top:0.3rem">画像</span>
         <div style="flex:1;display:flex;flex-direction:column;gap:0.45rem">
@@ -803,6 +795,14 @@
           <input class="a-input fill" id="editModal-thumbnail" maxlength="500" placeholder="または画像URLを直接入力" oninput="updateThumbnailPreview(this.value)" />
         </div>
       </div>
+      <div class="field-row"><span class="field-label">人数</span>  <input class="a-input fill" id="editModal-players"  maxlength="20" placeholder="例：6〜8名" /></div>
+      <div class="field-row"><span class="field-label">定員</span>  <input class="a-input" id="editModal-capacity" type="number" min="0" max="99" style="width:5rem" /><span class="field-hint">名（0で無制限）</span></div>
+      <div class="field-row"><span class="field-label">時間</span>  <input class="a-input fill" id="editModal-time"     maxlength="20" placeholder="例：約120分" /></div>
+      <div class="field-row"><span class="field-label">金額</span>  <input class="a-input fill" id="editModal-price"    maxlength="20" placeholder="例：2,000円" /></div>
+      <div class="field-row"><span class="field-label">作者</span>  <input class="a-input fill" id="editModal-author"   maxlength="40" /></div>
+      <div class="field-row"><span class="field-label">作品URL</span><input class="a-input fill" id="editModal-url" maxlength="500" placeholder="https://..." /></div>
+      <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="editModal-tags"      maxlength="100" placeholder="カンマ区切りで入力" /></div>
+      <div class="field-row"><span class="field-label">カテゴリ</span><select class="a-select" id="editModal-cat"></select></div>
       <hr style="border:none;border-top:1px solid var(--border);margin:0.4rem 0" />
       <div class="field-row"><span class="field-label">状態</span>
         <select class="a-select" id="editModal-status">
