@@ -655,6 +655,13 @@
       .main-col { width: 100%; }
       header { flex: none; height: auto; padding: 3rem 1.25rem 1.75rem; }
       main { padding: 2rem 1.25rem 4rem; }
+      /* SP：ヘッダーが低く光がテキストに被るため、光を弱め小さくする */
+      .header-glow { opacity: 0.38; }
+      .header-glow::before { width: 200px; height: 200px; }
+      .header-glow::after  { width: 180px; height: 180px; }
+      .header-glow span    { width: 150px; height: 150px; }
+      /* 可読性の保証：薄色テキストに暗いハロー */
+      .header-eyebrow, .header-subtitle, .header-pass { text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
     }
 
     @media (max-width: 600px) {
