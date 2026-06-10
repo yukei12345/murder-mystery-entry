@@ -24,7 +24,10 @@ const WORKS = [
   { id: 'w5', title: 'ダークユールに贖いを',        defaultCat: '複数回経験済み', players: '7〜9名', time: '約180分', capacity: 9, author: 'Group SNE', tags: ['Level★★★', '吸血鬼', 'ロールプレイ', 'GM不要'] },
 ];
 
-const ADMIN_PASS = ['UC1022', 'UC1257']; // ← 管理者の社員番号をここで変更（複数可）
+const ADMIN_PASS_HASHES = [
+  '48681e0adfbfbc5292e502af906c389588b28db1b10d320abc9624f3897e91ad',
+  '141c68c35d63241210b422cb5dd31f8de81eaee9da4baf7cc8d12baa501298db',
+]; // ← 社員番号をSHA-256ハッシュ化した値（平文は保存しない）
 
 // ── Firebase 状態（リアルタイム同期） ────────────────────
 let fbState = { entries: {}, categories: null, workcats: {}, workinfo: {}, deleted: [], customWorks: {}, workOrder: [] };
@@ -529,8 +532,11 @@ function togglePassVisible() {
   btn.setAttribute('aria-label', hide ? 'パスワードを隠す' : 'パスワードを表示');
 }
 
-function adminLogin() {
-  if (!ADMIN_PASS.includes(document.getElementById('adminPass').value)) {
+async function adminLogin() {
+  const input = document.getElementById('adminPass').value;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(input));
+  const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  if (!ADMIN_PASS_HASHES.includes(hash)) {
     document.getElementById('adminErr').textContent = 'パスワードが違います'; return;
   }
   document.getElementById('adminErr').textContent = '';
