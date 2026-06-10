@@ -462,8 +462,16 @@ function showMsg(el, text, type) {
 // ── 管理者 ────────────────────────────────────────────────
 let isAdmin = false;
 let adminTab = 'recruiting'; // 'recruiting' | 'confirmed' | 'done'
+let adminSearch = '';
 
 function setAdminTab(tab) { adminTab = tab; renderAdmin(); }
+function setAdminSearch(v) { adminSearch = (v || '').trim(); renderAdmin(); }
+function matchesAdminSearch(w) {
+  if (!adminSearch) return true;
+  const info = getInfo(w);
+  const hay  = [info.title, ...info.tags].join(' ').toLowerCase();
+  return adminSearch.toLowerCase().split(/\s+/).filter(Boolean).every(t => hay.includes(t));
+}
 
 function toggleAdmin() {
   if (isAdmin) { adminLogout(); return; }
@@ -500,6 +508,8 @@ function adminLogin() {
 
 function adminLogout() {
   isAdmin = false;
+  adminSearch = '';
+  const asi = document.getElementById('adminSearchInput'); if (asi) asi.value = '';
   document.getElementById('adminPass').value = '';
   document.getElementById('adminView').innerHTML = '';
   document.getElementById('adminLoginBox').style.display = 'none';
@@ -528,12 +538,12 @@ function renderAdmin() {
   if (!isAdmin) { document.getElementById('adminView').innerHTML = ''; return; }
   const entries = fbState.entries;
 
-  // タブごとの件数
+  // タブごとの件数（検索で絞り込み）
   const tabCounts = { recruiting: 0, confirmed: 0, done: 0 };
-  getWorks().forEach(w => { const s = getInfo(w).status; if (s in tabCounts) tabCounts[s]++; });
+  getWorks().forEach(w => { const s = getInfo(w).status; if (s in tabCounts && matchesAdminSearch(w)) tabCounts[s]++; });
 
   const cards = getWorks()
-    .filter(w => getInfo(w).status === adminTab)
+    .filter(w => getInfo(w).status === adminTab && matchesAdminSearch(w))
     .map(w => renderWork(w, entries[w.id] || [], { admin: true }))
     .join('');
 

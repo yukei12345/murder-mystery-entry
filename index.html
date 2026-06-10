@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=23" />
+  <link rel="stylesheet" href="css/style.css?v=24" />
 </head>
 <body>
 
@@ -48,6 +48,12 @@
 
 <div class="admin-panel" id="adminPanel">
   <div class="admin-panel-inner">
+    <div class="search-bar">
+      <img class="search-icon" src="img/search-icon.png" alt="" aria-hidden="true" />
+      <input type="search" id="adminSearchInput" class="search-input"
+             placeholder="作品名・タグで検索（例：コメディ）"
+             aria-label="管理：作品名・タグで検索" oninput="setAdminSearch(this.value)" />
+    </div>
     <div id="adminView"></div>
   </div>
 </div>
@@ -127,6 +133,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-<script src="js/app.js?v=23"></script>
+<script src="js/app.js?v=24"></script>
 </body>
 </html>
