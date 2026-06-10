@@ -355,8 +355,9 @@ function renderWork(w, entries, opts = {}) {
 
   const cardClass = ['work', admin ? 'work-admin' : '', isFull && !isConfirmed && !isDone ? 'is-full' : '', isDone ? 'is-done' : ''].filter(Boolean).join(' ');
 
-  const urlLink = info.url
-    ? `<a href="${esc(info.url)}" target="_blank" rel="noopener noreferrer" class="work-url-link">
+  const safeUrlVal = safeUrl(info.url);
+  const urlLink = safeUrlVal
+    ? `<a href="${esc(safeUrlVal)}" target="_blank" rel="noopener noreferrer" class="work-url-link">
          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
          作品ページ
        </a>` : '';
@@ -665,6 +666,7 @@ function saveEditModal() {
   const msgEl       = document.getElementById('editModal-msg');
 
   if (!title) { showMsg(msgEl, '作品名は必須です', 'err'); return; }
+  if (url && !safeUrl(url)) { showMsg(msgEl, '作品URLは http:// または https:// で始めてください', 'err'); return; }
 
   const info = { title, players, time, author, price, tags, capacity, status, scheduledAt, venue, url, thumbnail };
 
@@ -946,6 +948,12 @@ function onAdminDrop(e, targetId) {
 // ── utils ─────────────────────────────────────────────────
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// http(s) のみ許可（javascript: 等のスキームを無効化＝XSS対策）
+function safeUrl(u) {
+  const s = String(u || '').trim();
+  return /^https?:\/\//i.test(s) ? s : '';
 }
 
 // ── 初期化 ────────────────────────────────────────────────
