@@ -535,46 +535,45 @@ function showAdminUI() {
 }
 
 function renderAdmin() {
-  if (!isAdmin) { document.getElementById('adminView').innerHTML = ''; return; }
+  if (!isAdmin) {
+    document.getElementById('adminView').innerHTML = '';
+    document.getElementById('adminTabs').innerHTML = '';
+    return;
+  }
   const entries = fbState.entries;
 
   // タブごとの件数（検索で絞り込み）
   const tabCounts = { recruiting: 0, confirmed: 0, done: 0 };
   getWorks().forEach(w => { const s = getInfo(w).status; if (s in tabCounts && matchesAdminSearch(w)) tabCounts[s]++; });
 
+  // タブ（固定コンテナへ描画）
+  document.getElementById('adminTabs').innerHTML = `
+    <button class="admin-tab ${adminTab==='recruiting'?'active':''}" role="tab"
+            aria-selected="${adminTab==='recruiting'}" onclick="setAdminTab('recruiting')">
+      募集中<span class="admin-tab-count">${tabCounts.recruiting}</span>
+    </button>
+    <button class="admin-tab ${adminTab==='confirmed'?'active':''}" role="tab"
+            aria-selected="${adminTab==='confirmed'}" onclick="setAdminTab('confirmed')">
+      開催確定<span class="admin-tab-count">${tabCounts.confirmed}</span>
+    </button>
+    <button class="admin-tab ${adminTab==='done'?'active':''}" role="tab"
+            aria-selected="${adminTab==='done'}" onclick="setAdminTab('done')">
+      開催済み<span class="admin-tab-count">${tabCounts.done}</span>
+    </button>`;
+
+  // カード一覧（固定の検索バーの下＝adminView）
   const cards = getWorks()
     .filter(w => getInfo(w).status === adminTab && matchesAdminSearch(w))
     .map(w => renderWork(w, entries[w.id] || [], { admin: true }))
     .join('');
 
   document.getElementById('adminView').innerHTML = `
-    <div class="admin-section">
-      <button class="btn btn-primary" style="width:100%" onclick="openAddModal()">＋ 新規作品を追加</button>
-    </div>
-    <div class="admin-section">
-      <p class="admin-section-title">作品・エントリー管理</p>
-      <div class="admin-tabs" role="tablist">
-        <button class="admin-tab ${adminTab==='recruiting'?'active':''}" role="tab"
-                aria-selected="${adminTab==='recruiting'}" onclick="setAdminTab('recruiting')">
-          募集中<span class="admin-tab-count">${tabCounts.recruiting}</span>
-        </button>
-        <button class="admin-tab ${adminTab==='confirmed'?'active':''}" role="tab"
-                aria-selected="${adminTab==='confirmed'}" onclick="setAdminTab('confirmed')">
-          開催確定<span class="admin-tab-count">${tabCounts.confirmed}</span>
-        </button>
-        <button class="admin-tab ${adminTab==='done'?'active':''}" role="tab"
-                aria-selected="${adminTab==='done'}" onclick="setAdminTab('done')">
-          開催済み<span class="admin-tab-count">${tabCounts.done}</span>
-        </button>
-      </div>
-      ${cards.length
-        ? `<div class="admin-list">${cards}</div>`
-        : `<p style="color:var(--muted);font-size:0.85rem;padding:1.5rem 0;text-align:center">該当する作品はありません</p>`
-      }
-      ${adminTab === 'recruiting'
-        ? `<button class="reset-btn" onclick="clearAll()">全エントリーをリセット</button>`
-        : ''}
-    </div>`;
+    ${cards.length
+      ? `<div class="admin-list">${cards}</div>`
+      : `<p style="color:var(--muted);font-size:0.85rem;padding:1.5rem 0;text-align:center">該当する作品はありません</p>`}
+    ${adminTab === 'recruiting'
+      ? `<button class="reset-btn" onclick="clearAll()">全エントリーをリセット</button>`
+      : ''}`;
 }
 
 // ── 編集モーダル ───────────────────────────────────────────
