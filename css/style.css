@@ -582,8 +582,9 @@
 
     /* ── Admin status tabs ── */
     .admin-tabs {
-      display: flex; gap: 0; border-bottom: 2px solid var(--border);
-      margin-bottom: 1.25rem; overflow-x: auto;
+      display: flex; flex-wrap: nowrap; gap: 0; border-bottom: 2px solid var(--border);
+      margin-bottom: 1.25rem; overflow-x: auto; overflow-y: hidden;
+      touch-action: pan-x; -webkit-overflow-scrolling: touch;
     }
     .admin-tab {
       background: none; border: 2px solid transparent; border-bottom: 3px solid transparent;
