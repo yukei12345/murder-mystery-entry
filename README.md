@@ -93,8 +93,8 @@ git push origin main
 **バージョン番号**を付けています。
 
 ```html
-<link rel="stylesheet" href="css/style.css?v=25" />
-<script src="js/app.js?v=25"></script>
+<link rel="stylesheet" href="css/style.css?v=31" />
+<script src="js/app.js?v=31"></script>
 ```
 
 `css/style.css` や `js/app.js` を更新したら、この **`?v=` の数字を1つ増やして** push すると、
@@ -106,7 +106,7 @@ git push origin main
 
 | やりたいこと | 変更箇所 |
 |---|---|
-| 管理者パスワードの変更 | `js/app.js` の `const ADMIN_PASS = '...'` |
+| 管理者の追加・変更 | `js/app.js` の `ADMIN_PASS_HASHES` 配列にSHA-256ハッシュ値を追加（後述） |
 | 初期作品（デフォルト）の編集 | `js/app.js` 冒頭の `WORKS` 配列 |
 | 配色（テーマカラー） | `css/style.css` 先頭の `:root { --accent 等 }` |
 | 検索アイコンの差し替え | `img/search-icon.png` を置き換え |
@@ -134,18 +134,36 @@ git push origin main
 
 ---
 
+## 管理者の追加・変更
+
+管理者パスワード（社員番号）はソースに平文保存せず、**SHA-256ハッシュ値**のみ保持しています。
+追加・変更時は以下のコマンドでハッシュを生成し、`js/app.js` の `ADMIN_PASS_HASHES` 配列に追記してください。
+
+```bash
+node -e "const c=require('crypto'); console.log(c.createHash('sha256').update('社員番号').digest('hex'))"
+```
+
+```js
+// js/app.js
+const ADMIN_PASS_HASHES = [
+  '48681e0a...', // UC1022
+  '141c68c3...', // UC1257
+  '新しいハッシュ値',
+];
+```
+
+---
+
 ## セキュリティ・仕様上の注意
 
-- **管理者パスワードはクライアント側で判定**しています（`js/app.js` 内）。
-  ソースを見れば誰でも分かるため、これは「仲間内の簡易的な仕切り」であり、
-  厳密なアクセス制御ではありません。重要な用途には向きません。
+- **管理者認証はクライアント側**で行っています。パスワードはSHA-256でハッシュ化してソースに保持しており、
+  平文は記載されていませんが、短い社員番号は総当たりで解析できる可能性があります。
+  「URLを知っている仲間内の簡易的な仕切り」として想定しており、厳密なアクセス制御には向きません。
 - **Firebase の設定値（apiKey 等）は公開されます**。これは Web 版 Firebase の通常仕様で、
   本来の保護は **Realtime Database のセキュリティルール**で行います。用途に応じてルールの設定を推奨します。
 - **エントリー者名の「非公開」は表示上の配慮**です。自分のエントリー判定は端末の `localStorage`
   （キー: `mm_my_entries`）で行うため、端末・ブラウザを変えると「自分のエントリー」は表示されません
   （その作品に同じ名前で入れ直そうとすると「すでにエントリー済み」で弾かれます）。
-- 公開ページのヘッダーには現在、管理者パスワードが表示される作りになっています。
-  非公開にしたい場合は `index.html` のヘッダー該当部分を削除してください。
 
 ---
 
