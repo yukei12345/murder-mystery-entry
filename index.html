@@ -650,8 +650,10 @@
 
     /* サイドバー → 縦積み（タブレット以下） */
     @media (max-width: 768px) {
-      .app-shell { flex-direction: column; }
+      body { overflow-x: hidden; }
+      .app-shell { flex-direction: column; align-items: stretch; width: 100%; }
       .sidebar { width: 100%; position: static; height: auto; overflow: visible; }
+      .main-col { width: 100%; }
       header { flex: none; height: auto; padding: 3rem 1.25rem 1.75rem; }
       main { padding: 2rem 1.25rem 4rem; }
     }
