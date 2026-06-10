@@ -183,6 +183,21 @@
     /* ── Main ── */
     main { max-width: 980px; margin: 0 auto; padding: 2.5rem 2rem 5rem; }
 
+    /* ── 検索ボックス ── */
+    .search-bar {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--bg); border: 1px solid var(--border-strong);
+      border-radius: 10px; padding: 0.55rem 0.9rem; margin-bottom: 1rem;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .search-bar:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .search-icon { font-size: 0.95rem; line-height: 1; opacity: 0.7; }
+    .search-input {
+      flex: 1; min-width: 0; border: none; background: transparent;
+      font-family: inherit; font-size: 16px; color: var(--text); outline: none;
+    }
+    .search-input::placeholder { color: var(--muted); }
+
     /* ── Filter bar ── */
     .filter-bar {
       display: flex; flex-wrap: wrap; gap: 0.5rem;

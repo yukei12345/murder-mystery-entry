@@ -44,6 +44,7 @@ rootRef.on('value', (snapshot) => {
   fbState.workinfo    = data.workinfo   || {};
   fbState.deleted     = toArr(data.deleted);
   fbState.workOrder   = toArr(data.workOrder);
+  fbState.catMerged   = !!(data.meta && data.meta.catMerged);
   // customWorks の tags も配列に正規化
   const rawCW = data.customWorks || {};
   fbState.customWorks = {};
@@ -54,6 +55,7 @@ rootRef.on('value', (snapshot) => {
   setSyncOnline(true);
   render();
   if (isAdmin && document.getElementById('adminView').innerHTML) renderAdmin();
+  migrateCategoriesToTags();
 });
 
 db.ref('.info/connected').on('value', (snap) => {
@@ -151,14 +153,30 @@ const ICON = {
 };
 
 // ── メイン描画 ────────────────────────────────────────────
-let activeFilter = 'all';
 let activePlayerFilter = 'all'; // 'all' or a capacity number
 let showArchived = false;
+let activeSearch = '';
 
-function getAllCats() {
-  const cats = getCategories();
-  const hasUngrouped = getWorks().some(w => !cats.includes(getWorkCat(w)));
-  return hasUngrouped ? [...cats, 'その他'] : [...cats];
+// 旧カテゴリを各作品のタグへ統合する一度きりの移行（冪等・追加のみ）
+function migrateCategoriesToTags() {
+  if (fbState.catMerged) return;
+  const updates = {};
+  getWorks().forEach(w => {
+    const cat  = getWorkCat(w);
+    const tags = getInfo(w).tags;
+    if (cat && !tags.includes(cat)) updates[`workinfo/${w.id}/tags`] = [...tags, cat];
+  });
+  updates['meta/catMerged'] = true;
+  rootRef.update(updates).catch(() => {});
+}
+
+// タグ・作品名のテキスト検索（スペース区切りでAND）
+function setSearch(v) { activeSearch = (v || '').trim(); render(); }
+function matchesSearch(w) {
+  if (!activeSearch) return true;
+  const info = getInfo(w);
+  const hay  = [info.title, ...info.tags].join(' ').toLowerCase();
+  return activeSearch.toLowerCase().split(/\s+/).filter(Boolean).every(t => hay.includes(t));
 }
 
 function getPlayerOptions() {
@@ -174,12 +192,10 @@ function matchesPlayerFilter(w) {
   return getInfo(w).capacity === activePlayerFilter;
 }
 
-function setFilter(cat) { activeFilter = cat; render(); }
 function setPlayerFilter(val) { activePlayerFilter = val; render(); }
 function toggleArchived() { showArchived = !showArchived; render(); }
 
 function renderFilterBar() {
-  const cats    = getAllCats();
   const works   = getWorks();
   const playerOpts = getPlayerOptions();
 
@@ -188,19 +204,8 @@ function renderFilterBar() {
     return showArchived ? s !== 'recruiting' : s === 'recruiting';
   };
 
-  const countOf = c => (c === 'その他')
-    ? works.filter(w => !getCategories().includes(getWorkCat(w)) && matchesPlayerFilter(w) && matchesStatus(w)).length
-    : works.filter(w => getWorkCat(w) === c && matchesPlayerFilter(w) && matchesStatus(w)).length;
-
   const playerCountOf = cap =>
-    works.filter(w => getInfo(w).capacity === cap && matchesStatus(w) && (activeFilter === 'all' || getWorkCat(w) === activeFilter || (activeFilter === 'その他' && !getCategories().includes(getWorkCat(w))))).length;
-
-  const catSection = [
-    `<button class="filter-chip ${activeFilter==='all'?'active':''}" aria-pressed="${activeFilter==='all'}" onclick="setFilter('all')">すべて<span class="filter-count">${works.filter(w => matchesPlayerFilter(w) && matchesStatus(w)).length}</span></button>`,
-    ...cats.map(c =>
-      `<button class="filter-chip ${activeFilter===c?'active':''}" aria-pressed="${activeFilter===c}" onclick="setFilter('${esc(c)}')">${esc(c)}<span class="filter-count">${countOf(c)}</span></button>`
-    ),
-  ].join('');
+    works.filter(w => getInfo(w).capacity === cap && matchesStatus(w) && matchesSearch(w)).length;
 
   const playerSection = playerOpts.length ? [
     `<button class="filter-chip ${activePlayerFilter==='all'?'active':''}" aria-pressed="${activePlayerFilter==='all'}" onclick="setPlayerFilter('all')">すべて</button>`,
@@ -219,7 +224,6 @@ function renderFilterBar() {
      </div>`;
 
   document.getElementById('filterBar').innerHTML =
-    `<div class="filter-section"><span class="filter-section-label">カテゴリ</span>${catSection}</div>` +
     `<div class="filter-section" style="${playerSection ? '' : 'visibility:hidden;pointer-events:none'}"><span class="filter-section-label">最大人数</span>${playerSection}</div>` +
     archivedSection;
 }
@@ -227,31 +231,19 @@ function renderFilterBar() {
 function render() {
   if (!fbReady) return;
   const entries = fbState.entries;
-  const cats    = getCategories();
   const works   = getWorks();
 
-  if (activeFilter !== 'all' && !getAllCats().includes(activeFilter)) activeFilter = 'all';
   renderFilterBar();
 
   const filtered = works.filter(w => {
     const s = getInfo(w).status;
-    return matchesPlayerFilter(w) && (
+    return matchesPlayerFilter(w) && matchesSearch(w) && (
       showArchived ? s !== 'recruiting' : s === 'recruiting'
     );
   });
-  let groups = cats.map(cat => ({ cat, works: filtered.filter(w => getWorkCat(w) === cat) })).filter(g => g.works.length > 0);
-  const ungrouped = filtered.filter(w => !cats.includes(getWorkCat(w)));
-  if (ungrouped.length) groups.push({ cat: 'その他', works: ungrouped });
-  if (activeFilter !== 'all') groups = groups.filter(g => g.cat === activeFilter);
 
-  document.getElementById('works').innerHTML = groups.length
-    ? groups.map(g => `
-    <div class="category-group">
-      <div class="category-heading">
-        <span class="category-heading-label">${esc(g.cat)}</span>
-      </div>
-      <div class="works">${g.works.map(w => renderWork(w, entries[w.id] || [])).join('')}</div>
-    </div>`).join('')
+  document.getElementById('works').innerHTML = filtered.length
+    ? `<div class="works">${filtered.map(w => renderWork(w, entries[w.id] || [])).join('')}</div>`
     : '<p class="no-result">該当する作品がありません</p>';
 }
 
@@ -510,14 +502,6 @@ function showAdminUI() {
 function renderAdmin() {
   if (!isAdmin) { document.getElementById('adminView').innerHTML = ''; return; }
   const entries = fbState.entries;
-  const cats    = getCategories();
-
-  const catRows = cats.map((c, i) => `
-    <div class="cat-row">
-      <input class="a-input fill" id="cat-${i}" value="${esc(c)}" maxlength="30" />
-      <button class="btn-xs btn-save" onclick="saveCat(${i})">保存</button>
-      <button class="btn-xs btn-del"  onclick="deleteCat(${i})">削除</button>
-    </div>`).join('');
 
   const DRAG_HANDLE_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/></svg>`;
 
@@ -580,7 +564,6 @@ function renderAdmin() {
               onmousedown="this.closest('.admin-card').draggable=true"
               onmouseup="this.closest('.admin-card').draggable=false">${DRAG_HANDLE_SVG}</span>
         <span class="admin-card-title">${esc(info.title)}</span>
-        <span class="work-badge" style="flex-shrink:0">${esc(getWorkCat(w))}</span>
         <span class="${countBadgeClass}" style="flex-shrink:0">${countLabel}</span>
         ${statusBadge}
         <div class="admin-card-actions">
@@ -608,15 +591,6 @@ function renderAdmin() {
 
   document.getElementById('adminView').innerHTML = `
     <div class="admin-section">
-      <p class="admin-section-title">カテゴリ管理</p>
-      <div class="cat-list">${catRows}</div>
-      <div class="add-cat-row">
-        <input class="a-input fill" id="newCatInput" placeholder="新しいカテゴリ名" maxlength="30"
-               onkeydown="if(event.key==='Enter') addCat()" />
-        <button class="btn-xs btn-save" onclick="addCat()">追加</button>
-      </div>
-    </div>
-    <div class="admin-section">
       <p class="admin-section-title">新規作品を追加</p>
       <div class="field-row"><span class="field-label">作品名</span><input class="a-input fill" id="new-title"    placeholder="作品名（必須）" maxlength="40" /></div>
       <div class="field-row"><span class="field-label">作者</span>  <input class="a-input fill" id="new-author"   placeholder="作者・サークル名" maxlength="40" /></div>
@@ -624,12 +598,7 @@ function renderAdmin() {
       <div class="field-row"><span class="field-label">人数</span>  <input class="a-input fill" id="new-players"  placeholder="例：4〜6名" maxlength="20" /></div>
       <div class="field-row"><span class="field-label">定員</span>  <input class="a-input" id="new-capacity" type="number" min="0" max="99" value="0" style="width:5rem" /><span class="field-hint">名（0で無制限）</span></div>
       <div class="field-row"><span class="field-label">時間</span>  <input class="a-input fill" id="new-time"     placeholder="例：約120分" maxlength="20" /></div>
-      <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="new-tags"     placeholder="カンマ区切りで入力" maxlength="100" /></div>
-      <div class="field-row"><span class="field-label">カテゴリ</span>
-        <select class="a-select" id="new-cat">
-          ${getCategories().map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}
-        </select>
-      </div>
+      <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="new-tags"     placeholder="カンマ区切りで入力（旧カテゴリもタグで）" maxlength="100" /></div>
       <div class="field-row" style="margin-top:0.4rem">
         <button class="btn-xs btn-save" onclick="addNewWork()">作品を追加</button>
       </div>
@@ -661,42 +630,6 @@ function renderAdmin() {
     </div>`;
 }
 
-// ── カテゴリ操作 ──────────────────────────────────────────
-function addCat() {
-  const input = document.getElementById('newCatInput');
-  const name  = input.value.trim();
-  if (!name) return;
-  const cats = getCategories();
-  if (cats.includes(name)) return;
-  cats.push(name);
-  input.value = '';
-  fbSet('categories', cats);
-}
-
-function saveCat(i) {
-  const val = document.getElementById(`cat-${i}`).value.trim();
-  if (!val) return;
-  const cats = getCategories();
-  const old  = cats[i];
-  cats[i]    = val;
-  const wc   = { ...fbState.workcats };
-  WORKS.forEach(w => { if (wc[w.id] === old) wc[w.id] = val; });
-  fbSet('categories', cats);
-  fbSet('workcats', wc);
-}
-
-function deleteCat(i) {
-  const cats = getCategories();
-  const name = cats[i];
-  if (name === undefined) return;
-  openConfirm({
-    title: 'カテゴリを削除',
-    message: `<strong>${esc(name)}</strong> を削除します。<br>このカテゴリの作品は「その他」に移動します。よろしいですか？`,
-    okLabel: '削除する', danger: true,
-    onConfirm: () => { const cur = getCategories(); cur.splice(i, 1); fbSet('categories', cur); },
-  });
-}
-
 // ── 編集モーダル ───────────────────────────────────────────
 let editModalWorkId = null;
 
@@ -706,10 +639,6 @@ function openEditModal(id) {
   const info = getInfo(w);
   editModalWorkId = id;
 
-  const catOpts = getCategories().map(c =>
-    `<option value="${esc(c)}" ${getWorkCat(w) === c ? 'selected' : ''}>${esc(c)}</option>`
-  ).join('');
-
   document.getElementById('editModalHeading').textContent = `「${info.title}」を編集`;
   document.getElementById('editModal-title').value       = info.title;
   document.getElementById('editModal-players').value     = info.players;
@@ -718,7 +647,6 @@ function openEditModal(id) {
   document.getElementById('editModal-author').value      = info.author;
   document.getElementById('editModal-price').value       = info.price;
   document.getElementById('editModal-tags').value        = info.tags.join(',');
-  document.getElementById('editModal-cat').innerHTML     = catOpts;
   document.getElementById('editModal-status').value      = info.status;
   document.getElementById('editModal-scheduledAt').value = info.scheduledAt;
   document.getElementById('editModal-venue').value       = info.venue;
@@ -747,7 +675,6 @@ function saveEditModal() {
   const author   = document.getElementById('editModal-author').value.trim();
   const price    = document.getElementById('editModal-price').value.trim();
   const tags     = document.getElementById('editModal-tags').value.split(',').map(t => t.trim()).filter(Boolean);
-  const cat         = document.getElementById('editModal-cat').value;
   const status      = document.getElementById('editModal-status').value;
   const scheduledAt = document.getElementById('editModal-scheduledAt').value.trim();
   const venue       = document.getElementById('editModal-venue').value.trim();
@@ -759,7 +686,6 @@ function saveEditModal() {
 
   const commit = () => {
     saveInfo(id, { title, players, time, author, price, tags, capacity, status, scheduledAt, venue, url, thumbnail });
-    fbSet(`workcats/${id}`, cat);
     closeEditModal();
   };
 
@@ -979,13 +905,12 @@ function addNewWork() {
   const time     = document.getElementById('new-time').value.trim();
   const tags     = document.getElementById('new-tags').value.split(',').map(t => t.trim()).filter(Boolean);
   const capacity = Math.max(0, parseInt(document.getElementById('new-capacity').value, 10) || 0);
-  const cat      = document.getElementById('new-cat').value;
   const msgEl    = document.getElementById('msg-new-work');
 
   if (!title) { showMsg(msgEl, '作品名は必須です', 'err'); return; }
 
   const id = 'cw_' + Date.now();
-  const newWork = { title, author, price, players, time, tags, capacity, defaultCat: cat };
+  const newWork = { title, author, price, players, time, tags, capacity };
 
   fbSet(`customWorks/${id}`, newWork).then(() => {
     // フォームをリセット

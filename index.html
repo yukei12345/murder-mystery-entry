@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=4" />
+  <link rel="stylesheet" href="css/style.css?v=5" />
 </head>
 <body>
 
@@ -52,7 +52,13 @@
 </div>
 
 <main id="publicView">
-  <div class="filter-bar" id="filterBar" role="group" aria-label="カテゴリで絞り込み"></div>
+  <div class="search-bar">
+    <span class="search-icon" aria-hidden="true">🔎</span>
+    <input type="search" id="searchInput" class="search-input"
+           placeholder="タグや作品名で検索（例：コメディ / 初心者）"
+           aria-label="タグや作品名で検索" oninput="setSearch(this.value)" />
+  </div>
+  <div class="filter-bar" id="filterBar" role="group" aria-label="絞り込み"></div>
   <div id="works"><p class="loading">データを読み込み中...</p></div>
 </main>
 </div><!-- /.main-col -->
@@ -96,8 +102,7 @@
       <div class="field-row"><span class="field-label">金額</span>  <input class="a-input fill" id="editModal-price"    maxlength="20" placeholder="例：2,000円" /></div>
       <div class="field-row"><span class="field-label">作者</span>  <input class="a-input fill" id="editModal-author"   maxlength="40" /></div>
       <div class="field-row"><span class="field-label">作品URL</span><input class="a-input fill" id="editModal-url" maxlength="500" placeholder="https://..." /></div>
-      <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="editModal-tags"      maxlength="100" placeholder="カンマ区切りで入力" /></div>
-      <div class="field-row"><span class="field-label">カテゴリ</span><select class="a-select" id="editModal-cat"></select></div>
+      <div class="field-row"><span class="field-label">タグ</span>  <input class="a-input fill" id="editModal-tags"      maxlength="100" placeholder="カンマ区切りで入力（旧カテゴリもタグで）" /></div>
       <hr style="border:none;border-top:1px solid var(--border);margin:0.4rem 0" />
       <div class="field-row"><span class="field-label">状態</span>
         <select class="a-select" id="editModal-status">
@@ -121,6 +126,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-<script src="js/app.js?v=4"></script>
+<script src="js/app.js?v=5"></script>
 </body>
 </html>
