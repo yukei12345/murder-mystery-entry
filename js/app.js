@@ -969,6 +969,12 @@ function safeUrl(u) {
 }
 
 // ── お知らせ ──────────────────────────────────────────────
+function formatNoticeDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+}
+
 function getDismissedNotices() {
   try { return JSON.parse(localStorage.getItem('mm_dismissed_notices') || '[]'); } catch { return []; }
 }
@@ -992,8 +998,11 @@ function renderNotices() {
   container.innerHTML = notices.map(n => `
     <div class="notice-card">
       <div class="notice-content">
-        ${n.title ? `<div class="notice-title">${esc(n.title)}</div>` : ''}
-        ${n.body  ? `<div class="notice-body">${esc(n.body).replace(/\n/g,'<br>')}</div>` : ''}
+        <div class="notice-header">
+          ${n.title ? `<span class="notice-title">${esc(n.title)}</span>` : ''}
+          <span class="notice-date">${formatNoticeDate(n.createdAt)}</span>
+        </div>
+        ${n.body ? `<div class="notice-body">${esc(n.body).replace(/\n/g,'<br>')}</div>` : ''}
       </div>
       <button class="notice-dismiss" aria-label="このお知らせを閉じる" onclick="dismissNotice('${n.id}')">×</button>
     </div>`).join('');
@@ -1012,8 +1021,11 @@ function renderAdminNotices() {
   container.innerHTML = notices.map(n => `
     <div class="admin-notice-card">
       <div class="admin-notice-content">
-        ${n.title ? `<div class="admin-notice-title">${esc(n.title)}</div>` : ''}
-        ${n.body  ? `<div class="admin-notice-body">${esc(n.body).replace(/\n/g,'<br>')}</div>` : ''}
+        <div class="notice-header">
+          ${n.title ? `<span class="admin-notice-title">${esc(n.title)}</span>` : ''}
+          <span class="notice-date">${formatNoticeDate(n.createdAt)}</span>
+        </div>
+        ${n.body ? `<div class="admin-notice-body">${esc(n.body).replace(/\n/g,'<br>')}</div>` : ''}
       </div>
       <div class="admin-notice-actions">
         <button class="btn-xs btn-save" onclick="openNoticeModal('${n.id}')">✏ 編集</button>

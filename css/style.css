@@ -735,9 +735,15 @@
       border-radius: var(--radius); padding: 0.75rem 1rem;
     }
     .notice-content { flex: 1; min-width: 0; }
+    .notice-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: 0.5rem; margin-bottom: 0.2rem;
+    }
     .notice-title {
-      font-weight: 700; font-size: 0.88rem; color: var(--accent-dark);
-      margin-bottom: 0.2rem; line-height: 1.5;
+      font-weight: 700; font-size: 0.88rem; color: var(--accent-dark); line-height: 1.5;
+    }
+    .notice-date {
+      font-size: 0.72rem; color: var(--muted); white-space: nowrap; flex-shrink: 0;
     }
     .notice-body  { font-size: 0.82rem; color: var(--text); line-height: 1.6; }
     .notice-dismiss {
@@ -773,7 +779,7 @@
       border-radius: 8px; padding: 0.65rem 0.9rem; margin-bottom: 0.45rem;
     }
     .admin-notice-content { flex: 1; min-width: 0; }
-    .admin-notice-title { font-weight: 700; font-size: 0.82rem; color: var(--accent-dark); margin-bottom: 0.18rem; line-height: 1.5; }
+    .admin-notice-title { font-weight: 700; font-size: 0.82rem; color: var(--accent-dark); line-height: 1.5; }
     .admin-notice-body  { font-size: 0.78rem; color: var(--text); line-height: 1.55; }
     .admin-notice-actions { display: flex; flex-direction: column; gap: 0.3rem; flex-shrink: 0; }
     .notice-empty { font-size: 0.78rem; color: var(--muted); font-style: italic; }
