@@ -1057,7 +1057,7 @@ function saveNoticeModal() {
   const title = document.getElementById('noticeModal-title').value.trim();
   const body  = document.getElementById('noticeModal-body').value.trim();
   const msgEl = document.getElementById('noticeModal-msg');
-  if (!title) { showMsg(msgEl, 'タイトルを入力してください', 'err'); return; }
+  if (!title) { showMsg(msgEl, '件名を入力してください', 'err'); return; }
   const id      = noticeModalId || ('notice_' + Date.now());
   const now     = Date.now();
   const existing = noticeModalId ? (fbState.notices[noticeModalId] || null) : null;
