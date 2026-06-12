@@ -999,8 +999,8 @@ function renderNotices() {
     <div class="notice-card">
       <div class="notice-content">
         <div class="notice-header">
-          ${n.title ? `<span class="notice-title">${esc(n.title)}</span>` : ''}
           <span class="notice-date">${formatNoticeDate(n.createdAt)}</span>
+          ${n.title ? `<span class="notice-title">${esc(n.title)}</span>` : ''}
         </div>
         ${n.body ? `<div class="notice-body">${esc(n.body).replace(/\n/g,'<br>')}</div>` : ''}
       </div>
@@ -1022,8 +1022,8 @@ function renderAdminNotices() {
     <div class="admin-notice-card">
       <div class="admin-notice-content">
         <div class="notice-header">
-          ${n.title ? `<span class="admin-notice-title">${esc(n.title)}</span>` : ''}
           <span class="notice-date">${formatNoticeDate(n.createdAt)}</span>
+          ${n.title ? `<span class="admin-notice-title">${esc(n.title)}</span>` : ''}
         </div>
         ${n.body ? `<div class="admin-notice-body">${esc(n.body).replace(/\n/g,'<br>')}</div>` : ''}
       </div>

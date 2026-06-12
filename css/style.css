@@ -736,8 +736,7 @@
     }
     .notice-content { flex: 1; min-width: 0; }
     .notice-header {
-      display: flex; align-items: baseline; justify-content: space-between;
-      gap: 0.5rem; margin-bottom: 0.2rem;
+      display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.2rem;
     }
     .notice-title {
       font-weight: 700; font-size: 0.88rem; color: var(--accent-dark); line-height: 1.5;
