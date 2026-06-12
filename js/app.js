@@ -30,7 +30,7 @@ const ADMIN_PASS_HASHES = [
 ]; // ← 社員番号をSHA-256ハッシュ化した値（平文は保存しない）
 
 // ── Firebase 状態（リアルタイム同期） ────────────────────
-let fbState = { entries: {}, categories: null, workcats: {}, workinfo: {}, deleted: [], customWorks: {}, workOrder: [] };
+let fbState = { entries: {}, categories: null, workcats: {}, workinfo: {}, deleted: [], customWorks: {}, workOrder: [], notices: {} };
 let fbReady = false;
 
 // Firebase は配列をオブジェクトとして返すことがあるため正規化
@@ -48,6 +48,7 @@ rootRef.on('value', (snapshot) => {
   fbState.deleted     = toArr(data.deleted);
   fbState.workOrder   = toArr(data.workOrder);
   fbState.catMerged   = !!(data.meta && data.meta.catMerged);
+  fbState.notices     = data.notices    || {};
   // customWorks の tags も配列に正規化
   const rawCW = data.customWorks || {};
   fbState.customWorks = {};
@@ -254,6 +255,7 @@ function renderFilterBar() {
 
 function render() {
   if (!fbReady) return;
+  renderNotices();
   const entries = fbState.entries;
   const works   = getWorks();
 
@@ -617,6 +619,8 @@ function renderAdmin() {
     ${cards.length
       ? `<div class="admin-list">${cards}</div>`
       : `<p style="color:var(--muted);font-size:0.85rem;padding:1.5rem 0;text-align:center">該当する作品はありません</p>`}`;
+
+  renderAdminNotices();
 }
 
 // ── 編集モーダル ───────────────────────────────────────────
@@ -963,5 +967,109 @@ function safeUrl(u) {
   const s = String(u || '').trim();
   return /^https?:\/\//i.test(s) ? s : '';
 }
+
+// ── お知らせ ──────────────────────────────────────────────
+function getDismissedNotices() {
+  try { return JSON.parse(localStorage.getItem('mm_dismissed_notices') || '[]'); } catch { return []; }
+}
+
+function dismissNotice(id) {
+  const d = getDismissedNotices();
+  if (!d.includes(id)) { d.push(id); localStorage.setItem('mm_dismissed_notices', JSON.stringify(d)); }
+  renderNotices();
+}
+
+function renderNotices() {
+  const container = document.getElementById('noticesArea');
+  if (!container) return;
+  const dismissed = getDismissedNotices();
+  const notices = Object.entries(fbState.notices)
+    .map(([id, n]) => ({ id, ...n }))
+    .filter(n => !dismissed.includes(n.id))
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  if (!notices.length) { container.innerHTML = ''; container.style.display = 'none'; return; }
+  container.style.display = '';
+  container.innerHTML = notices.map(n => `
+    <div class="notice-card">
+      <span class="notice-icon" aria-hidden="true">📢</span>
+      <div class="notice-content">
+        ${n.title ? `<div class="notice-title">${esc(n.title)}</div>` : ''}
+        ${n.body  ? `<div class="notice-body">${esc(n.body).replace(/\n/g,'<br>')}</div>` : ''}
+      </div>
+      <button class="notice-dismiss" aria-label="このお知らせを閉じる" onclick="dismissNotice('${n.id}')">×</button>
+    </div>`).join('');
+}
+
+function renderAdminNotices() {
+  const container = document.getElementById('adminNoticesArea');
+  if (!container) return;
+  const notices = Object.entries(fbState.notices)
+    .map(([id, n]) => ({ id, ...n }))
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  if (!notices.length) {
+    container.innerHTML = '<p class="notice-empty">お知らせはありません</p>';
+    return;
+  }
+  container.innerHTML = notices.map(n => `
+    <div class="admin-notice-card">
+      <div class="admin-notice-content">
+        ${n.title ? `<div class="admin-notice-title">${esc(n.title)}</div>` : ''}
+        ${n.body  ? `<div class="admin-notice-body">${esc(n.body).replace(/\n/g,'<br>')}</div>` : ''}
+      </div>
+      <div class="admin-notice-actions">
+        <button class="btn-xs btn-save" onclick="openNoticeModal('${n.id}')">✏ 編集</button>
+        <button class="btn-xs btn-del"  onclick="askDeleteNotice('${n.id}')">🗑 削除</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── お知らせモーダル ──────────────────────────────────────
+let noticeModalId = null;
+
+function openNoticeModal(id) {
+  noticeModalId = id || null;
+  const n = id ? (fbState.notices[id] || null) : null;
+  document.getElementById('noticeModalHeading').textContent = id ? 'お知らせを編集' : 'お知らせを追加';
+  document.getElementById('noticeModal-title').value = n ? (n.title || '') : '';
+  document.getElementById('noticeModal-body').value  = n ? (n.body  || '') : '';
+  document.getElementById('noticeModal-msg').textContent = '';
+  document.getElementById('noticeModalOverlay').classList.add('open');
+  document.getElementById('noticeModal-title').focus();
+}
+
+function closeNoticeModal() {
+  document.getElementById('noticeModalOverlay').classList.remove('open');
+  noticeModalId = null;
+}
+
+function saveNoticeModal() {
+  const title = document.getElementById('noticeModal-title').value.trim();
+  const body  = document.getElementById('noticeModal-body').value.trim();
+  const msgEl = document.getElementById('noticeModal-msg');
+  if (!title) { showMsg(msgEl, 'タイトルを入力してください', 'err'); return; }
+  const id      = noticeModalId || ('notice_' + Date.now());
+  const now     = Date.now();
+  const existing = noticeModalId ? (fbState.notices[noticeModalId] || null) : null;
+  fbSet(`notices/${id}`, { title, body, createdAt: existing ? existing.createdAt : now, updatedAt: now })
+    .then(() => closeNoticeModal());
+}
+
+function askDeleteNotice(id) {
+  const n = fbState.notices[id];
+  if (!n) return;
+  openConfirm({
+    title: 'お知らせを削除',
+    message: `「<strong>${esc(n.title || '(無題)')}</strong>」を削除します。この操作は取り消せません。`,
+    okLabel: '削除する', danger: true,
+    onConfirm: () => fbSet(`notices/${id}`, null),
+  });
+}
+
+document.getElementById('noticeModalOverlay').addEventListener('click', e => {
+  if (e.target.id === 'noticeModalOverlay') closeNoticeModal();
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('noticeModalOverlay').classList.contains('open')) closeNoticeModal();
+});
 
 // ── 初期化 ────────────────────────────────────────────────

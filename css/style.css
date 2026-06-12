@@ -726,6 +726,55 @@
       .modal-actions .btn { width: 100%; }
     }
 
+    /* ── お知らせ（公開ビュー） ── */
+    .notices-area { margin-bottom: 1.25rem; display: flex; flex-direction: column; gap: 0.55rem; }
+    .notice-card {
+      display: flex; align-items: flex-start; gap: 0.7rem;
+      background: #fffaeb; border: 1px solid #e8d068; border-left: 3px solid #c8a020;
+      border-radius: var(--radius); padding: 0.75rem 1rem;
+    }
+    .notice-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.05rem; }
+    .notice-content { flex: 1; min-width: 0; }
+    .notice-title { font-weight: 700; font-size: 0.88rem; color: var(--text); margin-bottom: 0.2rem; line-height: 1.5; }
+    .notice-body  { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+    .notice-dismiss {
+      flex-shrink: 0; background: none; border: none; cursor: pointer;
+      font-size: 1.15rem; color: #aaa; padding: 0 0.2rem; line-height: 1;
+      border-radius: 4px; transition: color 0.15s, background 0.15s;
+    }
+    .notice-dismiss:hover { color: var(--red); background: rgba(176,61,46,0.08); }
+    .notice-dismiss:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ── お知らせ（管理ビュー） ── */
+    .admin-top-actions {
+      display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.25rem;
+    }
+    .admin-top-actions .btn-add-work { margin-bottom: 0; }
+    .btn-add-notice {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: #fffaeb; color: #8a5f08; border: 1px solid #e8d068;
+      border-radius: 8px; padding: 0.7rem 1.5rem; font-size: 0.95rem;
+      font-family: inherit; font-weight: 700; cursor: pointer; white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn-add-notice:hover { background: #fff3cc; border-color: #c8a020; color: #6b4506; }
+    .btn-add-notice:focus-visible { outline: 2px solid #c8a020; outline-offset: 2px; }
+
+    .admin-notices-section {
+      margin-bottom: 1.5rem; padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .admin-notice-card {
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      background: #fffaeb; border: 1px solid #e8d068;
+      border-radius: 8px; padding: 0.65rem 0.9rem; margin-bottom: 0.45rem;
+    }
+    .admin-notice-content { flex: 1; min-width: 0; }
+    .admin-notice-title { font-weight: 700; font-size: 0.82rem; color: var(--text); margin-bottom: 0.18rem; line-height: 1.5; }
+    .admin-notice-body  { font-size: 0.78rem; color: var(--muted); line-height: 1.55; }
+    .admin-notice-actions { display: flex; flex-direction: column; gap: 0.3rem; flex-shrink: 0; }
+    .notice-empty { font-size: 0.78rem; color: var(--muted); font-style: italic; }
+
     @media (max-width: 360px) {
       .header-pass { font-size: 0.68rem; padding: 0.25rem 0.6rem; }
       .entry-form { flex-wrap: wrap; }

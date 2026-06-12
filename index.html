@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css?v=31" />
+  <link rel="stylesheet" href="css/style.css?v=32" />
 </head>
 <body>
 
@@ -49,7 +49,14 @@
 
 <div class="admin-panel" id="adminPanel">
   <div class="admin-panel-inner">
-    <button class="btn btn-primary btn-add-work" onclick="openAddModal()">＋ 新規作品を追加</button>
+    <div class="admin-top-actions">
+      <button class="btn btn-primary btn-add-work" onclick="openAddModal()">＋ 新規作品を追加</button>
+      <button class="btn btn-add-notice" onclick="openNoticeModal()">📢 お知らせを追加</button>
+    </div>
+    <div class="admin-notices-section">
+      <div class="admin-section-title">お知らせ管理</div>
+      <div id="adminNoticesArea"><p class="notice-empty">お知らせはありません</p></div>
+    </div>
     <div class="admin-tabs" id="adminTabs" role="tablist"></div>
     <div class="search-bar">
       <img class="search-icon" src="img/search-icon.png" alt="" aria-hidden="true" />
@@ -62,6 +69,7 @@
 </div>
 
 <main id="publicView">
+  <div id="noticesArea" class="notices-area" style="display:none"></div>
   <div class="search-bar">
     <img class="search-icon" src="img/search-icon.png" alt="" aria-hidden="true" />
     <input type="search" id="searchInput" class="search-input"
@@ -133,10 +141,33 @@
   </div>
 </div>
 
+<!-- お知らせモーダル -->
+<div class="edit-modal-overlay" id="noticeModalOverlay" role="dialog" aria-modal="true" aria-labelledby="noticeModalHeading">
+  <div class="edit-modal-dialog">
+    <h2 class="edit-modal-title" id="noticeModalHeading"></h2>
+    <div class="edit-modal-fields">
+      <div class="field-row">
+        <span class="field-label">タイトル<span class="field-required" aria-hidden="true">*</span></span>
+        <input class="a-input fill" id="noticeModal-title" maxlength="100" placeholder="必須" />
+      </div>
+      <div class="field-row" style="align-items:flex-start">
+        <span class="field-label" style="padding-top:0.3rem">本文</span>
+        <textarea class="a-input fill" id="noticeModal-body" rows="4" maxlength="500"
+                  placeholder="お知らせの内容（改行可）" style="resize:vertical;line-height:1.6"></textarea>
+      </div>
+    </div>
+    <p class="msg" id="noticeModal-msg" role="status" aria-live="polite"></p>
+    <div class="edit-modal-actions">
+      <button class="btn btn-ghost" onclick="closeNoticeModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveNoticeModal()">保存する</button>
+    </div>
+  </div>
+</div>
+
 <!-- Firebase SDK (CDN) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-<script src="js/app.js?v=31"></script>
+<script src="js/app.js?v=32"></script>
 </body>
 </html>
