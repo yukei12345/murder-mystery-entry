@@ -991,7 +991,6 @@ function renderNotices() {
   container.style.display = '';
   container.innerHTML = notices.map(n => `
     <div class="notice-card">
-      <span class="notice-icon" aria-hidden="true">📢</span>
       <div class="notice-content">
         ${n.title ? `<div class="notice-title">${esc(n.title)}</div>` : ''}
         ${n.body  ? `<div class="notice-body">${esc(n.body).replace(/\n/g,'<br>')}</div>` : ''}
