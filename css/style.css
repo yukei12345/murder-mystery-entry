@@ -412,6 +412,11 @@
     .entry-empty { font-size: 0.73rem; color: var(--muted); align-self: center; }
 
     .work-badge-full { background: var(--red) !important; color: #fff !important; border-color: var(--red) !important; font-weight: 700; }
+    .badge-new {
+      flex-shrink: 0; border-radius: 20px; font-size: 0.68rem;
+      padding: 0.15rem 0.6rem; font-weight: 800; white-space: nowrap;
+      background: #c0692a; color: #fff; letter-spacing: 0.05em;
+    }
     /* 満員カード */
     .work.is-full { border-left: 3px solid var(--red); }
     .work.is-full .work-header { background: rgba(176,61,46,0.04); }

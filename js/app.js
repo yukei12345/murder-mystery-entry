@@ -269,6 +269,18 @@ function render() {
     );
   });
 
+  // 残り必要人数の少ない順（開催に近い順）→同数なら登録日時の新しい順
+  filtered.sort((a, b) => {
+    const ea = (entries[a.id] || []).length;
+    const eb = (entries[b.id] || []).length;
+    const ca = getInfo(a).capacity;
+    const cb = getInfo(b).capacity;
+    const ra = ca > 0 ? ca - ea : Infinity;
+    const rb = cb > 0 ? cb - eb : Infinity;
+    if (ra !== rb) return ra - rb;
+    return getRegisteredAt(b) - getRegisteredAt(a);
+  });
+
   document.getElementById('works').innerHTML = filtered.length
     ? `<p class="works-count">${filtered.length}件の作品を表示中</p><div class="works">${filtered.map(w => renderWork(w, entries[w.id] || [])).join('')}</div>`
     : '<p class="no-result">該当する作品がありません</p>';
@@ -316,6 +328,12 @@ function renderWork(w, entries, opts = {}) {
   if (isFull && !isConfirmed && !isDone) { badge = '満員'; badgeClass += ' work-badge-full'; }
   else if (cap > 0) { badge = `${entries.length}/${cap}名`; }
   else              { badge = `${entries.length}名エントリー中`; }
+
+  // NEWバッジ（登録から7日以内の作品、公開ビューのみ）
+  const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+  const newBadge = !admin && getRegisteredAt(w) > Date.now() - ONE_WEEK_MS
+    ? `<span class="badge-new">NEW</span>`
+    : '';
 
   // ステータスバッジ
   const statusBadge = status === 'prepurchase'
@@ -378,6 +396,7 @@ function renderWork(w, entries, opts = {}) {
         ${dragHandle}
         <span class="work-title">${esc(info.title)}</span>
         <span class="${badgeClass}">${badge}</span>
+        ${newBadge}
         ${statusBadge}
       </div>
       ${(info.author || urlLink) ? `
@@ -955,6 +974,15 @@ function onAdminDrop(e, targetId) {
   ids.splice(from, 1);
   ids.splice(to, 0, adminDragSrcId);
   fbSet('workOrder', ids);
+}
+
+// ── 作品登録日時（customWorks のみ ID からタイムスタンプ取得） ──
+function getRegisteredAt(w) {
+  if (w.id && w.id.startsWith('cw_')) {
+    const ts = parseInt(w.id.slice(3), 10);
+    if (!isNaN(ts)) return ts;
+  }
+  return 0;
 }
 
 // ── utils ─────────────────────────────────────────────────
